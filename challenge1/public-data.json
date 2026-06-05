@@ -1,0 +1,183 @@
+{
+  "building": {
+    "address": "345 East 15th Street, Manhattan",
+    "bin": "1020419",
+    "block": "922",
+    "lot": "8",
+    "aka": "331 East 15 Street (same lot)",
+    "type": "School Building (5-story)",
+    "note": "Former Stuyvesant High School site"
+  },
+  "dob_complaints": [
+    {
+      "complaint_number": "1725349",
+      "address": "344 East 16 Street",
+      "date": "2026-05-14",
+      "category": "75",
+      "category_desc": "Illegal Conversion",
+      "status": "ACTIVE",
+      "disposition": null,
+      "description": null
+    },
+    {
+      "complaint_number": "1724765",
+      "address": "344 East 16 Street",
+      "date": "2026-05-08",
+      "category": "45",
+      "category_desc": "Failure to Maintain",
+      "status": "ACTIVE",
+      "disposition": "C1 - Violation Written",
+      "inspection_date": "2026-05-13",
+      "description": null
+    },
+    {
+      "complaint_number": "1703076",
+      "address": "345 East 15 Street",
+      "date": "2025-08-25",
+      "category": "04",
+      "category_desc": "Boiler",
+      "status": "RESOLVED",
+      "disposition": "I2 - No Violations Warranted",
+      "inspection_date": "2025-09-16",
+      "description": "Boiler complaint at school building"
+    },
+    {
+      "complaint_number": "1702008",
+      "address": "345 East 15 Street",
+      "date": "2025-08-12",
+      "category": "04",
+      "category_desc": "Boiler",
+      "status": "RESOLVED",
+      "disposition": "I2 - No Violations Warranted",
+      "inspection_date": "2025-08-12",
+      "description": "Boiler complaint at school building"
+    },
+    {
+      "complaint_number": "1695358",
+      "address": "345 East 15 Street",
+      "date": "2025-05-12",
+      "category": "23",
+      "category_desc": "Pedestrian Safety / Sidewalk Shed",
+      "status": "RESOLVED",
+      "disposition": "A8 - Partial Stop Work Order",
+      "inspection_date": "2025-05-13",
+      "description": "Pedestrian protection inadequate"
+    },
+    {
+      "complaint_number": "1690044",
+      "address": "345 East 15 Street",
+      "date": "2025-03-04",
+      "category": "10",
+      "category_desc": "Construction Safety",
+      "status": "RESOLVED",
+      "disposition": "I2 - No Violations Warranted",
+      "inspection_date": "2025-03-05",
+      "description": "There was a huge cement brick that fell on my sub roof from the school building where they are doing construction"
+    },
+    {
+      "complaint_number": "1649160",
+      "address": "345 East 15 Street",
+      "date": "2023-09-25",
+      "category": "94",
+      "category_desc": "Plumbing",
+      "status": "RESOLVED",
+      "disposition": "I2 - No Violations Warranted",
+      "inspection_date": "2023-09-28",
+      "description": "There is no running water or water pressure in the school"
+    },
+    {
+      "complaint_number": "1610978",
+      "address": "328 East 16 Street",
+      "date": "2022-06-01",
+      "category": "73",
+      "category_desc": "Egress / Exit",
+      "status": "RESOLVED",
+      "disposition": "A8 - Partial Stop Work Order",
+      "inspection_date": "2022-05-27",
+      "description": "Blocked egress"
+    },
+    {
+      "complaint_number": "1471369",
+      "address": "345 East 15 Street",
+      "date": "2018-02-01",
+      "category": "6M",
+      "category_desc": "Elevator / Escalator",
+      "status": "RESOLVED",
+      "disposition": "B2 - Conditions Corrected",
+      "inspection_date": "2018-02-12",
+      "description": "2 of 2 elevators in 5 story school building are out of service. There are disabled students who have to take stairs."
+    },
+    {
+      "complaint_number": "1473573",
+      "address": "345 East 15 Street",
+      "date": "2018-03-02",
+      "category": "77",
+      "category_desc": "Handicap Access",
+      "status": "RESOLVED",
+      "disposition": "A8 - Partial Stop Work Order",
+      "inspection_date": "2018-02-27",
+      "description": "Handicap compliance inspection"
+    }
+  ],
+  "dob_violations": [
+    {
+      "number": "V* 100688CMTF3LE",
+      "type": "DOB VIOLATION",
+      "status": "CLOSED",
+      "closure_date": "2011-09-28",
+      "category": "Elevator"
+    },
+    {
+      "number": "V* 100688ZMTF1LE",
+      "type": "DOB VIOLATION",
+      "status": "CLOSED",
+      "closure_date": "2011-09-28",
+      "category": "Elevator"
+    },
+    {
+      "number": "V* 100688ZMTF2LE",
+      "type": "DOB VIOLATION",
+      "status": "CLOSED",
+      "closure_date": "2011-09-28",
+      "category": "Elevator"
+    },
+    {
+      "number": "V* 093087CB1PS02",
+      "type": "DOB VIOLATION",
+      "status": "CLOSED",
+      "closure_date": "2011-09-28",
+      "category": "Boiler/Pressure"
+    },
+    {
+      "number": "V* 100105LL108101046",
+      "type": "DOB VIOLATION",
+      "status": "DISMISSED",
+      "category": "Local Law / Elevator Safety"
+    }
+  ],
+  "compliance_context": {
+    "boiler": {
+      "requirement": "Annual boiler inspection required per NYC Admin Code §28-303",
+      "penalty": "$1,000 - $5,000 for failure to file",
+      "note": "Building has 2 boiler complaints in Aug 2025 — both resolved with no violations warranted, but recurring pattern suggests monitoring needed"
+    },
+    "elevator": {
+      "requirement": "Annual Category 1 test + 5-year Category 5 test per Local Law 10/81",
+      "note": "History of elevator violations (3 closed 2011). 2018 complaint: BOTH elevators out in 5-story school with disabled students. Critical accessibility issue."
+    },
+    "egress": {
+      "requirement": "Maintaining clear means of egress per NYC Building Code Chapter 10",
+      "note": "2022 blocked egress complaint led to partial stop work order. School buildings have heightened egress requirements."
+    },
+    "pedestrian_safety": {
+      "requirement": "Construction requiring sidewalk protection per NYC Building Code §3307",
+      "note": "2025 complaint: cement debris fell on adjacent roof from school construction. Inadequate pedestrian protection led to stop work order."
+    },
+    "plumbing": {
+      "requirement": "Buildings must maintain potable water per NYC Plumbing Code",
+      "note": "2023: Complete loss of water/water pressure in school. A school with no running water is a potential Health Dept closure trigger."
+    }
+  },
+  "source": "NYC DOB Building Information System (BIS) — a810-bisweb.nyc.gov — Queried June 5, 2026",
+  "bin_url": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?boro=1&houseno=345&street=east+15+street"
+}

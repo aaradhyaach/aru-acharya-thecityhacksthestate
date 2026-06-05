@@ -4,79 +4,115 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CriticalAsset · 345 East 15th Street Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface-2: #242836;
-      --border: #2e3346;
-      --text: #e4e7ef;
-      --text-muted: #8b92a8;
-      --accent: #6366f1;
-      --accent-hover: #818cf8;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --info: #3b82f6;
-      --radius: 12px;
-      --shadow: 0 4px 24px rgba(0,0,0,0.3);
+      --color-bg: #f8f9fa;
+      --color-surface: #ffffff;
+      --color-text: #1a1a2e;
+      --color-text-secondary: #44546f;
+      --color-text-muted: #8993a4;
+      --color-border: #e2e8f0;
+      --color-border-light: #f1f5f9;
+      --color-primary: #0052CC;
+      --color-primary-light: #deebff;
+      --color-primary-dark: #0747A6;
+      --color-success: #36b37e;
+      --color-error: #de350b;
+      --color-warning: #ff991f;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
+      font-family: var(--font-sans);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
       min-height: 100vh;
     }
 
     /* ─── Header ─────────────────────────────────────────────────────── */
     .header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 32px;
+      background: linear-gradient(135deg, #0052CC 0%, #0747A6 100%);
+      color: white;
+      padding: 16px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 100;
+      box-shadow: 0 2px 12px rgba(0, 82, 204, 0.3);
     }
 
-    .header h1 {
-      font-size: 18px;
-      font-weight: 600;
+    .header-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .header h1 .logo {
-      width: 28px;
-      height: 28px;
-      background: var(--accent);
-      border-radius: 6px;
+    .header-left .logo {
+      width: 32px;
+      height: 32px;
+      background: rgba(255,255,255,0.2);
+      border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: 13px;
+      font-weight: 700;
     }
 
-    .header .status {
+    .header-left h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .header-right {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--text-muted);
+      gap: 16px;
+    }
+
+    .signal-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .signal-link:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      opacity: 0.85;
     }
 
     .status-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--success);
+      background: #36b37e;
       animation: pulse 2s infinite;
     }
 
@@ -88,9 +124,9 @@
     /* ─── Main Layout ────────────────────────────────────────────────── */
     .main {
       display: grid;
-      grid-template-columns: 1fr 400px;
+      grid-template-columns: 1fr 420px;
       gap: 0;
-      height: calc(100vh - 65px);
+      min-height: calc(100vh - 64px);
     }
 
     .main.detail-closed {
@@ -98,8 +134,9 @@
     }
 
     .content {
-      padding: 24px 32px;
+      padding: 24px;
       overflow-y: auto;
+      max-height: calc(100vh - 64px);
     }
 
     /* ─── Counter Cards ──────────────────────────────────────────────── */
@@ -111,31 +148,32 @@
     }
 
     .counter-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
       padding: 20px;
       cursor: pointer;
       transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
     }
 
     .counter-card:hover {
-      border-color: var(--accent);
+      box-shadow: var(--shadow-md);
       transform: translateY(-2px);
-      box-shadow: var(--shadow);
     }
 
     .counter-card.active {
-      border-color: var(--accent);
-      background: rgba(99, 102, 241, 0.08);
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
     }
 
     .counter-card .label {
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: var(--text-muted);
+      color: var(--color-text-muted);
       margin-bottom: 8px;
+      font-weight: 600;
     }
 
     .counter-card .value {
@@ -145,59 +183,75 @@
 
     .counter-card .sublabel {
       font-size: 12px;
-      color: var(--text-muted);
+      color: var(--color-text-muted);
       margin-top: 4px;
     }
 
-    .counter-card.open .value { color: var(--info); }
-    .counter-card.progress .value { color: var(--warning); }
-    .counter-card.overdue .value { color: var(--danger); }
-    .counter-card.total .value { color: var(--text); }
+    .counter-card.open .value { color: var(--color-primary); }
+    .counter-card.progress .value { color: var(--color-warning); }
+    .counter-card.overdue .value { color: var(--color-error); }
+    .counter-card.total .value { color: var(--color-text); }
 
-    /* ─── Filters ────────────────────────────────────────────────────── */
+    /* ─── Toolbar / Filters ──────────────────────────────────────────── */
     .toolbar {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 20px;
       align-items: center;
       flex-wrap: wrap;
     }
 
     .filter-btn {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 14px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 20px;
+      padding: 7px 16px;
       font-size: 13px;
-      color: var(--text-muted);
+      color: var(--color-text-secondary);
       cursor: pointer;
       transition: all 0.15s;
+      font-weight: 500;
     }
 
-    .filter-btn:hover { border-color: var(--accent); color: var(--text); }
-    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .filter-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    .filter-btn.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+    }
 
     .search-input {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 14px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 20px;
+      padding: 8px 16px;
       font-size: 13px;
-      color: var(--text);
-      width: 250px;
+      color: var(--color-text);
+      width: 240px;
       outline: none;
       margin-left: auto;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .search-input:focus { border-color: var(--accent); }
-    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+    }
+
+    .search-input::placeholder { color: var(--color-text-muted); }
 
     /* ─── Table ──────────────────────────────────────────────────────── */
     .table-container {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
       overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.2s;
     }
 
     table {
@@ -210,31 +264,32 @@
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: var(--text-muted);
+      color: var(--color-text-muted);
       text-align: left;
-      background: var(--surface-2);
-      border-bottom: 1px solid var(--border);
-      font-weight: 600;
+      background: var(--color-border-light);
+      border-bottom: 1px solid var(--color-border);
+      font-weight: 700;
     }
 
     tbody tr {
       cursor: pointer;
-      transition: background 0.1s;
+      transition: background 0.15s, box-shadow 0.15s;
     }
 
     tbody tr:hover {
-      background: var(--surface-2);
+      background: #f0f7ff;
     }
 
     tbody tr.selected {
-      background: rgba(99, 102, 241, 0.1);
+      background: var(--color-primary-light);
     }
 
     tbody td {
       padding: 14px 16px;
       font-size: 14px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--color-border-light);
       vertical-align: middle;
+      color: var(--color-text-secondary);
     }
 
     /* ─── Badges ─────────────────────────────────────────────────────── */
@@ -247,23 +302,24 @@
       letter-spacing: 0.3px;
     }
 
-    .badge-open { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-    .badge-to-do { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-    .badge-in-progress { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-    .badge-completed { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-    .badge-overdue { background: rgba(239, 68, 68, 0.15); color: #f87171; }
-    .badge-cancelled { background: rgba(107, 114, 128, 0.15); color: #9ca3af; }
+    .badge-open, .badge-to-do { background: #e6f0ff; color: #0065ff; }
+    .badge-in-progress { background: #fffae6; color: #b86e00; }
+    .badge-completed { background: #e3fcef; color: #006644; }
+    .badge-overdue { background: #ffebe6; color: #de350b; }
+    .badge-cancelled { background: #f1f5f9; color: #8993a4; }
 
-    .priority-high { color: var(--danger); font-weight: 600; }
-    .priority-medium { color: var(--warning); }
-    .priority-low { color: var(--text-muted); }
+    .priority-critical { color: #de350b; font-weight: 700; }
+    .priority-high { color: #de350b; font-weight: 600; }
+    .priority-medium { color: #b86e00; font-weight: 500; }
+    .priority-low { color: var(--color-text-muted); }
 
     /* ─── Detail Panel ───────────────────────────────────────────────── */
     .detail-panel {
-      background: var(--surface);
-      border-left: 1px solid var(--border);
+      background: var(--color-surface);
+      border-left: 1px solid var(--color-border);
       overflow-y: auto;
       padding: 24px;
+      max-height: calc(100vh - 64px);
     }
 
     .detail-panel.hidden { display: none; }
@@ -271,20 +327,25 @@
     .detail-close {
       background: none;
       border: none;
-      color: var(--text-muted);
+      color: var(--color-text-muted);
       font-size: 20px;
       cursor: pointer;
       float: right;
       padding: 4px 8px;
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
+      transition: background 0.15s;
     }
 
-    .detail-close:hover { background: var(--surface-2); color: var(--text); }
+    .detail-close:hover {
+      background: var(--color-border-light);
+      color: var(--color-text);
+    }
 
     .detail-panel h2 {
       font-size: 18px;
       margin-bottom: 20px;
       padding-right: 40px;
+      color: var(--color-text);
     }
 
     .detail-section {
@@ -295,35 +356,37 @@
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: var(--text-muted);
+      color: var(--color-text-muted);
       margin-bottom: 8px;
+      font-weight: 700;
     }
 
     .detail-row {
       display: flex;
       justify-content: space-between;
       padding: 8px 0;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--color-border-light);
       font-size: 13px;
     }
 
-    .detail-row .label { color: var(--text-muted); }
-    .detail-row .value { font-weight: 500; }
+    .detail-row .label { color: var(--color-text-muted); }
+    .detail-row .value { font-weight: 500; color: var(--color-text); }
 
     .detail-description {
       font-size: 14px;
       line-height: 1.6;
-      color: var(--text-muted);
+      color: var(--color-text-secondary);
       padding: 12px;
-      background: var(--surface-2);
-      border-radius: 8px;
+      background: var(--color-border-light);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
     }
 
-    /* ─── Student Signal ─────────────────────────────────────────────── */
+    /* ─── Student Signal in Detail ───────────────────────────────────── */
     .signal-section {
       margin-top: 24px;
       padding-top: 20px;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--color-border);
     }
 
     .signal-section h3 {
@@ -332,54 +395,77 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      color: var(--color-text);
+      font-weight: 600;
     }
 
     .signal-input {
       width: 100%;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
       padding: 12px;
       font-size: 14px;
-      color: var(--text);
+      color: var(--color-text);
       resize: vertical;
       min-height: 80px;
       outline: none;
-      font-family: inherit;
+      font-family: var(--font-sans);
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .signal-input:focus { border-color: var(--accent); }
+    .signal-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+    }
 
     .signal-btn {
       margin-top: 10px;
-      background: var(--accent);
+      background: var(--color-primary);
       border: none;
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       padding: 10px 20px;
       font-size: 14px;
       color: #fff;
       cursor: pointer;
-      font-weight: 500;
+      font-weight: 600;
       transition: background 0.15s;
       width: 100%;
     }
 
-    .signal-btn:hover { background: var(--accent-hover); }
+    .signal-btn:hover { background: var(--color-primary-dark); }
 
     .signal-success {
       margin-top: 10px;
       padding: 10px;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      border-radius: 8px;
+      background: #e3fcef;
+      border: 1px solid #abf5d1;
+      border-radius: var(--radius-sm);
       font-size: 13px;
-      color: var(--success);
+      color: #006644;
       display: none;
     }
 
-    /* ─── Building Summary ───────────────────────────────────────────── */
+    /* ─── Buildings Chart ─────────────────────────────────────────────── */
     .buildings-section {
       margin-top: 24px;
+    }
+
+    .buildings-section h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .buildings-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
     }
 
     .building-bar {
@@ -387,8 +473,10 @@
       align-items: center;
       gap: 12px;
       padding: 10px 0;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--color-border-light);
     }
+
+    .building-bar:last-child { border-bottom: none; }
 
     .building-bar .name {
       flex: 1;
@@ -396,45 +484,47 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: var(--color-text-secondary);
     }
 
     .building-bar .bar {
-      width: 100px;
+      width: 120px;
       height: 6px;
-      background: var(--surface-2);
+      background: var(--color-border-light);
       border-radius: 3px;
       overflow: hidden;
     }
 
     .building-bar .bar-fill {
       height: 100%;
-      background: var(--accent);
+      background: var(--color-primary);
       border-radius: 3px;
       transition: width 0.3s;
     }
 
     .building-bar .count {
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       min-width: 24px;
       text-align: right;
+      color: var(--color-text);
     }
 
-    /* ─── Loading State ──────────────────────────────────────────────── */
+    /* ─── Loading ─────────────────────────────────────────────────────── */
     .loading {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 60px;
-      color: var(--text-muted);
+      color: var(--color-text-muted);
     }
 
     .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--color-border);
+      border-top-color: var(--color-primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin-bottom: 16px;
@@ -442,38 +532,54 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .error-state {
-      padding: 40px;
-      text-align: center;
-      color: var(--danger);
-    }
-
     /* ─── Responsive ─────────────────────────────────────────────────── */
     @media (max-width: 1024px) {
       .main { grid-template-columns: 1fr; }
-      .detail-panel { 
-        position: fixed; 
-        right: 0; 
-        top: 65px; 
-        bottom: 0; 
+      .detail-panel {
+        position: fixed;
+        right: 0;
+        top: 64px;
+        bottom: 0;
         width: 400px;
-        box-shadow: -4px 0 24px rgba(0,0,0,0.4);
+        box-shadow: -4px 0 24px rgba(0,0,0,0.15);
         z-index: 50;
       }
+    }
+
+    @media (max-width: 768px) {
       .counters { grid-template-columns: repeat(2, 1fr); }
+      .header { padding: 12px 16px; }
+      .header-left h1 { font-size: 0.95rem; }
+      .content { padding: 16px; }
+      .toolbar { gap: 8px; }
+      .search-input { width: 100%; margin-left: 0; margin-top: 8px; }
+      .detail-panel { width: 100%; left: 0; }
+      .signal-link span.link-text { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .counters { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .counter-card { padding: 14px; }
+      .counter-card .value { font-size: 24px; }
     }
   </style>
 </head>
 <body>
   <!-- Header -->
   <div class="header">
-    <h1>
+    <div class="header-left">
       <span class="logo">CA</span>
-      345 E 15th St · Work Orders
-    </h1>
-    <div class="status">
-      <span class="status-dot"></span>
-      <span id="connectionStatus">Connecting...</span>
+      <h1>345 E 15th St · Work Orders</h1>
+    </div>
+    <div class="header-right">
+      <a href="/signal" class="signal-link">
+        <i class="fa-solid fa-bolt"></i>
+        <span class="link-text">Student Signal</span>
+      </a>
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span id="connectionStatus">Connecting...</span>
+      </div>
     </div>
   </div>
 
@@ -484,22 +590,22 @@
       <!-- Counter Cards -->
       <div class="counters">
         <div class="counter-card open" data-filter="open" onclick="filterByStatus('open')">
-          <div class="label">Open</div>
+          <div class="label"><i class="fa-solid fa-circle-dot" style="margin-right:4px;"></i> Open</div>
           <div class="value" id="countOpen">—</div>
           <div class="sublabel">Awaiting action</div>
         </div>
         <div class="counter-card progress" data-filter="in_progress" onclick="filterByStatus('in_progress')">
-          <div class="label">In Progress</div>
+          <div class="label"><i class="fa-solid fa-spinner" style="margin-right:4px;"></i> In Progress</div>
           <div class="value" id="countProgress">—</div>
           <div class="sublabel">Being worked on</div>
         </div>
         <div class="counter-card overdue" data-filter="overdue" onclick="filterByStatus('overdue')">
-          <div class="label">Overdue</div>
+          <div class="label"><i class="fa-solid fa-clock" style="margin-right:4px;"></i> Overdue</div>
           <div class="value" id="countOverdue">—</div>
           <div class="sublabel">Past due date</div>
         </div>
         <div class="counter-card total" data-filter="all" onclick="filterByStatus('all')">
-          <div class="label">Total</div>
+          <div class="label"><i class="fa-solid fa-list" style="margin-right:4px;"></i> Total</div>
           <div class="value" id="countTotal">—</div>
           <div class="sublabel">All work orders</div>
         </div>
@@ -508,10 +614,10 @@
       <!-- Filters -->
       <div class="toolbar">
         <button class="filter-btn active" data-priority="all" onclick="filterByPriority('all')">All Priorities</button>
-        <button class="filter-btn" data-priority="high" onclick="filterByPriority('high')">🔴 High</button>
-        <button class="filter-btn" data-priority="medium" onclick="filterByPriority('medium')">🟡 Medium</button>
-        <button class="filter-btn" data-priority="low" onclick="filterByPriority('low')">🟢 Low</button>
-        <input type="text" class="search-input" placeholder="Search work orders..." oninput="searchWorkOrders(this.value)">
+        <button class="filter-btn" data-priority="high" onclick="filterByPriority('high')"><i class="fa-solid fa-circle" style="color:#de350b;font-size:8px;margin-right:4px;"></i> High</button>
+        <button class="filter-btn" data-priority="medium" onclick="filterByPriority('medium')"><i class="fa-solid fa-circle" style="color:#ff991f;font-size:8px;margin-right:4px;"></i> Medium</button>
+        <button class="filter-btn" data-priority="low" onclick="filterByPriority('low')"><i class="fa-solid fa-circle" style="color:#36b37e;font-size:8px;margin-right:4px;"></i> Low</button>
+        <input type="text" class="search-input" placeholder="🔍 Search work orders..." oninput="searchWorkOrders(this.value)">
       </div>
 
       <!-- Table -->
@@ -542,14 +648,14 @@
 
       <!-- Top Buildings by Open Work Orders -->
       <div class="buildings-section">
-        <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin: 20px 0 12px;">Top Buildings by Open Work Orders</h3>
-        <div id="buildingsList"></div>
+        <h3>Top Buildings by Open Work Orders</h3>
+        <div class="buildings-card" id="buildingsList"></div>
       </div>
     </div>
 
     <!-- Detail Panel -->
     <div class="detail-panel hidden" id="detailPanel">
-      <button class="detail-close" onclick="closeDetail()">&times;</button>
+      <button class="detail-close" onclick="closeDetail()"><i class="fa-solid fa-xmark"></i></button>
       <div id="detailContent"></div>
     </div>
   </div>
@@ -567,22 +673,18 @@
     // ─── Initialize ────────────────────────────────────────────────────
     async function init() {
       try {
-        // Check health
         const health = await fetch(`${API_BASE}/api/health`).then(r => r.json());
-        
+
         if (!health.hasCredentials) {
-          document.getElementById('connectionStatus').textContent = '⚠️ No credentials configured';
-          document.getElementById('connectionStatus').style.color = '#f59e0b';
-          // Load demo data for development
+          document.getElementById('connectionStatus').textContent = '⚠️ No credentials';
           loadDemoData();
           return;
         }
 
-        document.getElementById('connectionStatus').textContent = 'Connected to CriticalAsset';
-        
-        // Fetch work orders
+        document.getElementById('connectionStatus').textContent = 'Connected';
+
         const data = await fetch(`${API_BASE}/api/workorders?limit=100`).then(r => r.json());
-        
+
         if (data.error) {
           throw new Error(data.error);
         }
@@ -592,7 +694,6 @@
       } catch (error) {
         console.error('Init error:', error);
         document.getElementById('connectionStatus').textContent = 'Demo Mode';
-        document.getElementById('connectionStatus').style.color = '#f59e0b';
         loadDemoData();
       }
     }
@@ -610,9 +711,8 @@
     // ─── Filtering ─────────────────────────────────────────────────────
     function applyFilters() {
       const now = new Date();
-      
+
       filteredWorkOrders = allWorkOrders.filter(wo => {
-        // Status filter
         if (currentFilter.status !== 'all') {
           const stage = wo.workOrderStage?.name?.toLowerCase().replace(/\s/g, '_') || 'open';
           if (currentFilter.status === 'overdue') {
@@ -625,7 +725,6 @@
           }
         }
 
-        // Priority filter
         if (currentFilter.priority !== 'all') {
           const priority = (wo.severity || wo.executionPriority || '').toLowerCase();
           if (currentFilter.priority === 'high' && priority !== 'high' && priority !== 'critical') return false;
@@ -633,7 +732,6 @@
           if (currentFilter.priority === 'low' && priority !== 'low') return false;
         }
 
-        // Search filter
         if (currentFilter.search) {
           const search = currentFilter.search.toLowerCase();
           const searchable = [
@@ -689,9 +787,9 @@
 
     function renderTable() {
       const tbody = document.getElementById('workOrderTable');
-      
+
       if (filteredWorkOrders.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">No work orders match the current filters.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--color-text-muted);">No work orders match the current filters.</td></tr>`;
         return;
       }
 
@@ -699,21 +797,21 @@
         const status = wo.workOrderStage?.name || 'Unknown';
         const statusClass = status.toLowerCase().replace(/\s/g, '-');
         const priority = wo.severity || wo.executionPriority || 'Unknown';
-        const priorityClass = priority.toLowerCase() === 'critical' ? 'high' : priority.toLowerCase();
+        const priorityClass = priority.toLowerCase();
         const isOverdue = wo.dueDate && new Date(wo.dueDate) < new Date() && statusClass !== 'completed';
         const dueDisplay = wo.dueDate ? new Date(wo.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
 
         return `
           <tr onclick="showDetail('${wo.id}')" class="${selectedWorkOrder?.id === wo.id ? 'selected' : ''}">
             <td style="max-width: 280px;">
-              <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${wo.title}</div>
-              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">${wo.id}</div>
+              <div style="font-weight: 600; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${wo.title}</div>
+              <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px; font-family: monospace;">${wo.id.slice(0, 8)}</div>
             </td>
             <td><span class="badge badge-${isOverdue ? 'overdue' : statusClass}">${isOverdue ? 'Overdue' : status}</span></td>
             <td><span class="priority-${priorityClass}">${priority}</span></td>
             <td style="font-size: 13px;">${wo.asset?.name || '—'}</td>
             <td style="font-size: 13px;">${wo.location?.locationName || '—'}</td>
-            <td style="font-size: 13px; ${isOverdue ? 'color: var(--danger); font-weight: 600;' : ''}">${dueDisplay}</td>
+            <td style="font-size: 13px; ${isOverdue ? 'color: var(--color-error); font-weight: 600;' : ''}">${dueDisplay}</td>
           </tr>
         `;
       }).join('');
@@ -724,7 +822,7 @@
       allWorkOrders.forEach(wo => {
         if (wo.location?.locationName) {
           const stage = wo.workOrderStage?.name?.toLowerCase();
-          if (stage === 'open' || stage === 'in progress') {
+          if (stage === 'open' || stage === 'to do' || stage === 'in progress') {
             buildingCounts[wo.location.locationName] = (buildingCounts[wo.location.locationName] || 0) + 1;
           }
         }
@@ -734,6 +832,10 @@
       const max = sorted[0]?.[1] || 1;
 
       const container = document.getElementById('buildingsList');
+      if (sorted.length === 0) {
+        container.innerHTML = '<div style="padding:16px; text-align:center; color:var(--color-text-muted); font-size:13px;">No open work orders by building</div>';
+        return;
+      }
       container.innerHTML = sorted.map(([name, count]) => `
         <div class="building-bar">
           <span class="name">${name}</span>
@@ -751,34 +853,34 @@
       const wo = selectedWorkOrder;
       const panel = document.getElementById('detailPanel');
       const layout = document.getElementById('mainLayout');
-      
+
       panel.classList.remove('hidden');
       layout.classList.remove('detail-closed');
 
-      const isOverdue = wo.dueDate && new Date(wo.dueDate) < new Date() && 
+      const isOverdue = wo.dueDate && new Date(wo.dueDate) < new Date() &&
                         wo.workOrderStage?.name?.toLowerCase() !== 'completed';
 
       document.getElementById('detailContent').innerHTML = `
         <h2>${wo.title}</h2>
-        
+
         <div class="detail-section">
-          <h3>Details</h3>
-          <div class="detail-row"><span class="label">ID</span><span class="value">${wo.id}</span></div>
-          <div class="detail-row"><span class="label">Status</span><span class="value"><span class="badge badge-${isOverdue ? 'overdue' : wo.workOrderStage?.name?.toLowerCase().replace(/\s/g, '-')}">${isOverdue ? 'OVERDUE' : wo.workOrderStage?.name}</span></span></div>
+          <h3><i class="fa-solid fa-info-circle" style="margin-right:4px;"></i> Details</h3>
+          <div class="detail-row"><span class="label">ID</span><span class="value" style="font-family:monospace;font-size:12px;">${wo.id}</span></div>
+          <div class="detail-row"><span class="label">Status</span><span class="value"><span class="badge badge-${isOverdue ? 'overdue' : wo.workOrderStage?.name?.toLowerCase().replace(/\\s/g, '-')}">${isOverdue ? 'OVERDUE' : wo.workOrderStage?.name}</span></span></div>
           <div class="detail-row"><span class="label">Priority</span><span class="value priority-${(wo.severity || '').toLowerCase()}">${wo.severity || wo.executionPriority || '—'}</span></div>
           <div class="detail-row"><span class="label">Created</span><span class="value">${new Date(wo.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></div>
-          <div class="detail-row"><span class="label">Due</span><span class="value" style="${isOverdue ? 'color: var(--danger); font-weight: 600;' : ''}">${wo.dueDate ? new Date(wo.dueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—'}</span></div>
+          <div class="detail-row"><span class="label">Due</span><span class="value" style="${isOverdue ? 'color: var(--color-error); font-weight: 600;' : ''}">${wo.dueDate ? new Date(wo.dueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—'}</span></div>
           <div class="detail-row"><span class="label">Assigned To</span><span class="value">${wo.assignee?.name || 'Unassigned'}</span></div>
         </div>
 
         <div class="detail-section">
-          <h3>Description</h3>
+          <h3><i class="fa-solid fa-align-left" style="margin-right:4px;"></i> Description</h3>
           <div class="detail-description">${wo.description || 'No description provided.'}</div>
         </div>
 
         ${wo.asset ? `
         <div class="detail-section">
-          <h3>Linked Asset</h3>
+          <h3><i class="fa-solid fa-cube" style="margin-right:4px;"></i> Linked Asset</h3>
           <div class="detail-row"><span class="label">Name</span><span class="value">${wo.asset.name}</span></div>
           <div class="detail-row"><span class="label">Category</span><span class="value">${wo.asset.category || '—'}</span></div>
           <div class="detail-row"><span class="label">Status</span><span class="value">${wo.asset.status || '—'}</span></div>
@@ -787,24 +889,23 @@
 
         ${wo.location ? `
         <div class="detail-section">
-          <h3>Location</h3>
+          <h3><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i> Location</h3>
           <div class="detail-row"><span class="label">Building</span><span class="value">${wo.location.locationName}</span></div>
           <div class="detail-row"><span class="label">Address</span><span class="value">${wo.location.address || '—'}</span></div>
         </div>
         ` : ''}
 
         <div class="signal-section">
-          <h3>📡 Student Signal</h3>
-          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+          <h3><i class="fa-solid fa-bolt" style="color:var(--color-primary);"></i> Student Signal</h3>
+          <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 10px;">
             Attach a one-line observation from lived experience to this work order.
           </p>
           <textarea class="signal-input" id="signalInput" placeholder="e.g., The bathroom has been closed for 2 weeks. Water near the sink every morning."></textarea>
-          <button class="signal-btn" onclick="submitSignal('${wo.id}')">Submit Signal</button>
-          <div class="signal-success" id="signalSuccess">✓ Signal submitted and linked to ${wo.id}</div>
+          <button class="signal-btn" onclick="submitSignal('${wo.id}')"><i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> Submit Signal</button>
+          <div class="signal-success" id="signalSuccess"><i class="fa-solid fa-check-circle" style="margin-right:6px;"></i> Signal submitted and linked to ${wo.id.slice(0, 8)}</div>
         </div>
       `;
 
-      // Re-render table to show selected state
       renderTable();
     }
 
@@ -819,9 +920,9 @@
     async function submitSignal(workOrderId) {
       const input = document.getElementById('signalInput');
       const observation = input.value.trim();
-      
+
       if (!observation) {
-        input.style.borderColor = 'var(--danger)';
+        input.style.borderColor = 'var(--color-error)';
         setTimeout(() => input.style.borderColor = '', 2000);
         return;
       }
@@ -841,7 +942,6 @@
         document.getElementById('signalSuccess').style.display = 'block';
         input.value = '';
       } catch (error) {
-        // In demo mode, still show success
         document.getElementById('signalSuccess').style.display = 'block';
         input.value = '';
       }
