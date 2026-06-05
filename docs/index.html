@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CriticalAsset · 345 East 15th Street Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --color-bg: #f8f9fa;
+      --color-surface: #ffffff;
+      --color-text: #1a1a2e;
+      --color-text-secondary: #44546f;
+      --color-text-muted: #8993a4;
+      --color-border: #e2e8f0;
+      --color-border-light: #f1f5f9;
+      --color-primary: #0052CC;
+      --color-primary-light: #deebff;
+      --color-primary-dark: #0747A6;
+      --color-success: #36b37e;
+      --color-error: #de350b;
+      --color-warning: #ff991f;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ─── Header ─────────────────────────────────────────────────────── */
+    .header {
+      background: linear-gradient(135deg, #0052CC 0%, #0747A6 100%);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0, 82, 204, 0.3);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-left .logo {
+      width: 32px;
+      height: 32px;
+      background: rgba(255,255,255,0.2);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .header-left h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .signal-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .signal-link:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      opacity: 0.85;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #36b37e;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ─── Main Layout ────────────────────────────────────────────────── */
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 0;
+      min-height: calc(100vh - 64px);
+    }
+
+    .main.detail-closed {
+      grid-template-columns: 1fr;
+    }
+
+    .content {
+      padding: 24px;
+      overflow-y: auto;
+      max-height: calc(100vh - 64px);
+    }
+
+    /* ─── Counter Cards ──────────────────────────────────────────────── */
+    .counters {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .counter-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .counter-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .counter-card.active {
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
+    }
+
+    .counter-card .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .counter-card .value {
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .counter-card .sublabel {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+    }
+
+    .counter-card.open .value { color: var(--color-primary); }
+    .counter-card.progress .value { color: var(--color-warning); }
+    .counter-card.overdue .value { color: var(--color-error); }
+    .counter-card.total .value { color: var(--color-text); }
+
+    /* ─── Toolbar / Filters ──────────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    .filter-btn.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+    }
+
+    .search-input {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--color-text);
+      width: 240px;
+      outline: none;
+      margin-left: auto;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+    }
+
+    .search-input::placeholder { color: var(--color-text-muted); }
+
+    /* ─── Table ──────────────────────────────────────────────────────── */
+    .table-container {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.2s;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      padding: 12px 16px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      text-align: left;
+      background: var(--color-border-light);
+      border-bottom: 1px solid var(--color-border);
+      font-weight: 700;
+    }
+
+    tbody tr {
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+
+    tbody tr:hover {
+      background: #f0f7ff;
+    }
+
+    tbody tr.selected {
+      background: var(--color-primary-light);
+    }
+
+    tbody td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--color-border-light);
+      vertical-align: middle;
+      color: var(--color-text-secondary);
+    }
+
+    /* ─── Badges ─────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-open, .badge-to-do { background: #e6f0ff; color: #0065ff; }
+    .badge-in-progress { background: #fffae6; color: #b86e00; }
+    .badge-completed { background: #e3fcef; color: #006644; }
+    .badge-overdue { background: #ffebe6; color: #de350b; }
+    .badge-cancelled { background: #f1f5f9; color: #8993a4; }
+
+    .priority-critical { color: #de350b; font-weight: 700; }
+    .priority-high { color: #de350b; font-weight: 600; }
+    .priority-medium { color: #b86e00; font-weight: 500; }
+    .priority-low { color: var(--color-text-muted); }
+
+    /* ─── Detail Panel ───────────────────────────────────────────────── */
+    .detail-panel {
+      background: var(--color-surface);
+      border-left: 1px solid var(--color-border);
+      overflow-y: auto;
+      padding: 24px;
+      max-height: calc(100vh - 64px);
+    }
+
+    .detail-panel.hidden { display: none; }
+
+    .detail-close {
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      font-size: 20px;
+      cursor: pointer;
+      float: right;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      transition: background 0.15s;
+    }
+
+    .detail-close:hover {
+      background: var(--color-border-light);
+      color: var(--color-text);
+    }
+
+    .detail-panel h2 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      padding-right: 40px;
+      color: var(--color-text);
+    }
+
+    .detail-section {
+      margin-bottom: 20px;
+    }
+
+    .detail-section h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-border-light);
+      font-size: 13px;
+    }
+
+    .detail-row .label { color: var(--color-text-muted); }
+    .detail-row .value { font-weight: 500; color: var(--color-text); }
+
+    .detail-description {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--color-text-secondary);
+      padding: 12px;
+      background: var(--color-border-light);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+    }
+
+    /* ─── Student Signal in Detail ───────────────────────────────────── */
+    .signal-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .signal-section h3 {
+      font-size: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--color-text);
+      font-weight: 600;
+    }
+
+    .signal-input {
+      width: 100%;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 14px;
+      color: var(--color-text);
+      resize: vertical;
+      min-height: 80px;
+      outline: none;
+      font-family: var(--font-sans);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .signal-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+    }
+
+    .signal-btn {
+      margin-top: 10px;
+      background: var(--color-primary);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 10px 20px;
+      font-size: 14px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.15s;
+      width: 100%;
+    }
+
+    .signal-btn:hover { background: var(--color-primary-dark); }
+
+    .signal-success {
+      margin-top: 10px;
+      padding: 10px;
+      background: #e3fcef;
+      border: 1px solid #abf5d1;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: #006644;
+      display: none;
+    }
+
+    /* ─── Buildings Chart ─────────────────────────────────────────────── */
+    .buildings-section {
+      margin-top: 24px;
+    }
+
+    .buildings-section h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .buildings-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .building-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .building-bar:last-child { border-bottom: none; }
+
+    .building-bar .name {
+      flex: 1;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--color-text-secondary);
+    }
+
+    .building-bar .bar {
+      width: 120px;
+      height: 6px;
+      background: var(--color-border-light);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .building-bar .bar-fill {
+      height: 100%;
+      background: var(--color-primary);
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+
+    .building-bar .count {
+      font-size: 12px;
+      font-weight: 700;
+      min-width: 24px;
+      text-align: right;
+      color: var(--color-text);
+    }
+
+    /* ─── Loading ─────────────────────────────────────────────────────── */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      color: var(--color-text-muted);
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--color-border);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Responsive ─────────────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .main { grid-template-columns: 1fr; }
+      .detail-panel {
+        position: fixed;
+        right: 0;
+        top: 64px;
+        bottom: 0;
+        width: 400px;
+        box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+        z-index: 50;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .counters { grid-template-columns: repeat(2, 1fr); }
+      .header { padding: 12px 16px; }
+      .header-left h1 { font-size: 0.95rem; }
+      .content { padding: 16px; }
+      .toolbar { gap: 8px; }
+      .search-input { width: 100%; margin-left: 0; margin-top: 8px; }
+      .detail-panel { width: 100%; left: 0; }
+      .signal-link span.link-text { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .counters { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .counter-card { padding: 14px; }
+      .counter-card .value { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <span class="logo">CA</span>
+      <h1>345 E 15th St · Work Orders</h1>
+    </div>
+    <div class="header-right">
+      <a href="/signal" class="signal-link">
+        <i class="fa-solid fa-bolt"></i>
+        <span class="link-text">Student Signal</span>
+      </a>
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span id="connectionStatus">Connecting...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="main detail-closed" id="mainLayout">
+    <!-- Content Area -->
+    <div class="content">
+      <!-- Counter Cards -->
+      <div class="counters">
+        <div class="counter-card open" data-filter="open" onclick="filterByStatus('open')">
+          <div class="label"><i class="fa-solid fa-circle-dot" style="margin-right:4px;"></i> Open</div>
+          <div class="value" id="countOpen">—</div>
+          <div class="sublabel">Awaiting action</div>
+        </div>
+        <div class="counter-card progress" data-filter="in_progress" onclick="filterByStatus('in_progress')">
+          <div class="label"><i class="fa-solid fa-spinner" style="margin-right:4px;"></i> In Progress</div>
+          <div class="value" id="countProgress">—</div>
+          <div class="sublabel">Being worked on</div>
+        </div>
+        <div class="counter-card overdue" data-filter="overdue" onclick="filterByStatus('overdue')">
+          <div class="label"><i class="fa-solid fa-clock" style="margin-right:4px;"></i> Overdue</div>
+          <div class="value" id="countOverdue">—</div>
+          <div class="sublabel">Past due date</div>
+        </div>
+        <div class="counter-card total" data-filter="all" onclick="filterByStatus('all')">
+          <div class="label"><i class="fa-solid fa-list" style="margin-right:4px;"></i> Total</div>
+          <div class="value" id="countTotal">—</div>
+          <div class="sublabel">All work orders</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="toolbar">
+        <button class="filter-btn active" data-priority="all" onclick="filterByPriority('all')">All Priorities</button>
+        <button class="filter-btn" data-priority="high" onclick="filterByPriority('high')"><i class="fa-solid fa-circle" style="color:#de350b;font-size:8px;margin-right:4px;"></i> High</button>
+        <button class="filter-btn" data-priority="medium" onclick="filterByPriority('medium')"><i class="fa-solid fa-circle" style="color:#ff991f;font-size:8px;margin-right:4px;"></i> Medium</button>
+        <button class="filter-btn" data-priority="low" onclick="filterByPriority('low')"><i class="fa-solid fa-circle" style="color:#36b37e;font-size:8px;margin-right:4px;"></i> Low</button>
+        <input type="text" class="search-input" placeholder="🔍 Search work orders..." oninput="searchWorkOrders(this.value)">
+      </div>
+
+      <!-- Table -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Asset</th>
+              <th>Location</th>
+              <th>Due Date</th>
+            </tr>
+          </thead>
+          <tbody id="workOrderTable">
+            <tr>
+              <td colspan="6">
+                <div class="loading">
+                  <div class="spinner"></div>
+                  <span>Loading work orders...</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Top Buildings by Open Work Orders -->
+      <div class="buildings-section">
+        <h3>Top Buildings by Open Work Orders</h3>
+        <div class="buildings-card" id="buildingsList"></div>
+      </div>
+    </div>
+
+    <!-- Detail Panel -->
+    <div class="detail-panel hidden" id="detailPanel">
+      <button class="detail-close" onclick="closeDetail()"><i class="fa-solid fa-xmark"></i></button>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <script>
+    // ─── State ─────────────────────────────────────────────────────────
+    let allWorkOrders = [];
+    let filteredWorkOrders = [];
+    let currentFilter = { status: 'all', priority: 'all', search: '' };
+    let selectedWorkOrder = null;
+
+    // ─── API Base URL ──────────────────────────────────────────────────
+    const API_BASE = window.location.origin;
+
+    // ─── Initialize ────────────────────────────────────────────────────
+    async function init() {
+      try {
+        const health = await fetch(`${API_BASE}/api/health`).then(r => r.json());
+
+        if (!health.hasCredentials) {
+          document.getElementById('connectionStatus').textContent = '⚠️ No credentials';
+          loadDemoData();
+          return;
+        }
+
+        document.getElementById('connectionStatus').textContent = 'Connected';
+
+        const data = await fetch(`${API_BASE}/api/workorders?limit=100`).then(r => r.json());
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        allWorkOrders = data.nodes || [];
+        applyFilters();
+      } catch (error) {
+        console.error('Init error:', error);
+        document.getElementById('connectionStatus').textContent = 'Demo Mode';
+        loadDemoData();
+      }
+    }
+
+    // ─── Demo Data ─────────────────────────────────────────────────────
+    function loadDemoData() {
+      allWorkOrders = [
+        { id: 'ee4cacef-08e3-58e6-a94f-e0ff32c5e6f5', title: 'Annual Steam System Inspection', description: 'Perform comprehensive annual inspection of the steam pressure reducing valve station and safety relief valves.', severity: 'high', executionPriority: 'high', workOrderStage: { name: 'To Do' }, workOrderServiceCategory: 'hvac', createdAt: '2026-05-30T09:00:00Z', dueDate: '2026-06-10T17:00:00Z', asset: { id: '602454ae-2f73-5e90-a688-87945cc0b6e8', name: 'Steam Pressure Reducing Valve Station', category: 'HVAC / Steam', status: 'active' }, location: { id: '6bbaf32c-707e-5bae-a59e-447e8aff1efc', locationName: '345 East 15th Street', address: '345 E 15th St, New York, NY' }, assignee: { id: 'U-01', name: 'Assigned Tech' } },
+        { id: '29c750cd-7929-524a-ab7c-b3e1e965b0fd', title: 'Electrical Distribution Panel Preventive Maintenance', description: 'Conduct thermal imaging and tighten connections on main switchboard and distribution panels.', severity: 'medium', executionPriority: 'medium', workOrderStage: { name: 'To Do' }, workOrderServiceCategory: 'electrical', createdAt: '2026-05-30T09:00:00Z', dueDate: '2026-06-07T17:00:00Z', asset: { id: '1ac4e575-2686-503e-a9b7-20df593ae553', name: 'Main Switchboard', category: 'Electrical', status: 'active' }, location: { id: '6bbaf32c-707e-5bae-a59e-447e8aff1efc', locationName: '345 East 15th Street', address: '345 E 15th St, New York, NY' }, assignee: { id: 'U-02', name: 'Assigned Tech' } },
+        { id: 'c5338071-972b-5dc2-a676-cefade0b4838', title: 'Emergency Exit Sign & Lighting Test', description: 'Perform mandatory emergency exit signage and battery unit discharge test.', severity: 'critical', executionPriority: 'critical', workOrderStage: { name: 'To Do' }, workOrderServiceCategory: 'fire_and_life_safety', createdAt: '2026-05-30T09:00:00Z', dueDate: '2026-06-15T17:00:00Z', asset: { id: 'b082f439-6d72-5e2f-a3ff-371db1aac811', name: 'Exit Sign', category: 'Fire & Life Safety', status: 'active' }, location: { id: '6bbaf32c-707e-5bae-a59e-447e8aff1efc', locationName: '345 East 15th Street', address: '345 E 15th St, New York, NY' }, assignee: { id: 'U-03', name: 'Assigned Tech' } },
+      ];
+      applyFilters();
+    }
+
+    // ─── Filtering ─────────────────────────────────────────────────────
+    function applyFilters() {
+      const now = new Date();
+
+      filteredWorkOrders = allWorkOrders.filter(wo => {
+        if (currentFilter.status !== 'all') {
+          const stage = wo.workOrderStage?.name?.toLowerCase().replace(/\s/g, '_') || 'open';
+          if (currentFilter.status === 'overdue') {
+            if (!wo.dueDate || new Date(wo.dueDate) >= now) return false;
+            if (stage === 'completed' || stage === 'cancelled') return false;
+          } else if (currentFilter.status === 'open' && stage !== 'open' && stage !== 'to_do' && stage !== 'to do') {
+            return false;
+          } else if (currentFilter.status === 'in_progress' && stage !== 'in_progress' && stage !== 'in progress') {
+            return false;
+          }
+        }
+
+        if (currentFilter.priority !== 'all') {
+          const priority = (wo.severity || wo.executionPriority || '').toLowerCase();
+          if (currentFilter.priority === 'high' && priority !== 'high' && priority !== 'critical') return false;
+          if (currentFilter.priority === 'medium' && priority !== 'medium') return false;
+          if (currentFilter.priority === 'low' && priority !== 'low') return false;
+        }
+
+        if (currentFilter.search) {
+          const search = currentFilter.search.toLowerCase();
+          const searchable = [
+            wo.title, wo.description, wo.asset?.name, wo.asset?.category,
+            wo.location?.locationName, wo.assignee?.name
+          ].filter(Boolean).join(' ').toLowerCase();
+          if (!searchable.includes(search)) return false;
+        }
+
+        return true;
+      });
+
+      renderCounters();
+      renderTable();
+      renderBuildings();
+    }
+
+    function filterByStatus(status) {
+      currentFilter.status = status;
+      document.querySelectorAll('.counter-card').forEach(c => c.classList.remove('active'));
+      document.querySelector(`.counter-card[data-filter="${status}"]`)?.classList.add('active');
+      applyFilters();
+    }
+
+    function filterByPriority(priority) {
+      currentFilter.priority = priority;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.filter-btn[data-priority="${priority}"]`)?.classList.add('active');
+      applyFilters();
+    }
+
+    function searchWorkOrders(query) {
+      currentFilter.search = query;
+      applyFilters();
+    }
+
+    // ─── Render Functions ──────────────────────────────────────────────
+    function renderCounters() {
+      const now = new Date();
+      const openStatuses = ['open', 'to do', 'to_do'];
+      const open = allWorkOrders.filter(wo => openStatuses.includes(wo.workOrderStage?.name?.toLowerCase())).length;
+      const inProgress = allWorkOrders.filter(wo => ['in progress', 'in_progress'].includes(wo.workOrderStage?.name?.toLowerCase())).length;
+      const overdue = allWorkOrders.filter(wo => {
+        const stage = wo.workOrderStage?.name?.toLowerCase();
+        return wo.dueDate && new Date(wo.dueDate) < now && stage !== 'completed' && stage !== 'cancelled' && stage !== 'done';
+      }).length;
+
+      document.getElementById('countOpen').textContent = open;
+      document.getElementById('countProgress').textContent = inProgress;
+      document.getElementById('countOverdue').textContent = overdue;
+      document.getElementById('countTotal').textContent = allWorkOrders.length;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('workOrderTable');
+
+      if (filteredWorkOrders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--color-text-muted);">No work orders match the current filters.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filteredWorkOrders.map(wo => {
+        const status = wo.workOrderStage?.name || 'Unknown';
+        const statusClass = status.toLowerCase().replace(/\s/g, '-');
+        const priority = wo.severity || wo.executionPriority || 'Unknown';
+        const priorityClass = priority.toLowerCase();
+        const isOverdue = wo.dueDate && new Date(wo.dueDate) < new Date() && statusClass !== 'completed';
+        const dueDisplay = wo.dueDate ? new Date(wo.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+
+        return `
+          <tr onclick="showDetail('${wo.id}')" class="${selectedWorkOrder?.id === wo.id ? 'selected' : ''}">
+            <td style="max-width: 280px;">
+              <div style="font-weight: 600; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${wo.title}</div>
+              <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px; font-family: monospace;">${wo.id.slice(0, 8)}</div>
+            </td>
+            <td><span class="badge badge-${isOverdue ? 'overdue' : statusClass}">${isOverdue ? 'Overdue' : status}</span></td>
+            <td><span class="priority-${priorityClass}">${priority}</span></td>
+            <td style="font-size: 13px;">${wo.asset?.name || '—'}</td>
+            <td style="font-size: 13px;">${wo.location?.locationName || '—'}</td>
+            <td style="font-size: 13px; ${isOverdue ? 'color: var(--color-error); font-weight: 600;' : ''}">${dueDisplay}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderBuildings() {
+      const buildingCounts = {};
+      allWorkOrders.forEach(wo => {
+        if (wo.location?.locationName) {
+          const stage = wo.workOrderStage?.name?.toLowerCase();
+          if (stage === 'open' || stage === 'to do' || stage === 'in progress') {
+            buildingCounts[wo.location.locationName] = (buildingCounts[wo.location.locationName] || 0) + 1;
+          }
+        }
+      });
+
+      const sorted = Object.entries(buildingCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const max = sorted[0]?.[1] || 1;
+
+      const container = document.getElementById('buildingsList');
+      if (sorted.length === 0) {
+        container.innerHTML = '<div style="padding:16px; text-align:center; color:var(--color-text-muted); font-size:13px;">No open work orders by building</div>';
+        return;
+      }
+      container.innerHTML = sorted.map(([name, count]) => `
+        <div class="building-bar">
+          <span class="name">${name}</span>
+          <div class="bar"><div class="bar-fill" style="width: ${(count / max) * 100}%"></div></div>
+          <span class="count">${count}</span>
+        </div>
+      `).join('');
+    }
+
+    // ─── Detail Panel ──────────────────────────────────────────────────
+    function showDetail(id) {
+      selectedWorkOrder = allWorkOrders.find(wo => wo.id === id);
+      if (!selectedWorkOrder) return;
+
+      const wo = selectedWorkOrder;
+      const panel = document.getElementById('detailPanel');
+      const layout = document.getElementById('mainLayout');
+
+      panel.classList.remove('hidden');
+      layout.classList.remove('detail-closed');
+
+      const isOverdue = wo.dueDate && new Date(wo.dueDate) < new Date() &&
+                        wo.workOrderStage?.name?.toLowerCase() !== 'completed';
+
+      document.getElementById('detailContent').innerHTML = `
+        <h2>${wo.title}</h2>
+
+        <div class="detail-section">
+          <h3><i class="fa-solid fa-info-circle" style="margin-right:4px;"></i> Details</h3>
+          <div class="detail-row"><span class="label">ID</span><span class="value" style="font-family:monospace;font-size:12px;">${wo.id}</span></div>
+          <div class="detail-row"><span class="label">Status</span><span class="value"><span class="badge badge-${isOverdue ? 'overdue' : wo.workOrderStage?.name?.toLowerCase().replace(/\\s/g, '-')}">${isOverdue ? 'OVERDUE' : wo.workOrderStage?.name}</span></span></div>
+          <div class="detail-row"><span class="label">Priority</span><span class="value priority-${(wo.severity || '').toLowerCase()}">${wo.severity || wo.executionPriority || '—'}</span></div>
+          <div class="detail-row"><span class="label">Created</span><span class="value">${new Date(wo.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></div>
+          <div class="detail-row"><span class="label">Due</span><span class="value" style="${isOverdue ? 'color: var(--color-error); font-weight: 600;' : ''}">${wo.dueDate ? new Date(wo.dueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—'}</span></div>
+          <div class="detail-row"><span class="label">Assigned To</span><span class="value">${wo.assignee?.name || 'Unassigned'}</span></div>
+        </div>
+
+        <div class="detail-section">
+          <h3><i class="fa-solid fa-align-left" style="margin-right:4px;"></i> Description</h3>
+          <div class="detail-description">${wo.description || 'No description provided.'}</div>
+        </div>
+
+        ${wo.asset ? `
+        <div class="detail-section">
+          <h3><i class="fa-solid fa-cube" style="margin-right:4px;"></i> Linked Asset</h3>
+          <div class="detail-row"><span class="label">Name</span><span class="value">${wo.asset.name}</span></div>
+          <div class="detail-row"><span class="label">Category</span><span class="value">${wo.asset.category || '—'}</span></div>
+          <div class="detail-row"><span class="label">Status</span><span class="value">${wo.asset.status || '—'}</span></div>
+        </div>
+        ` : ''}
+
+        ${wo.location ? `
+        <div class="detail-section">
+          <h3><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i> Location</h3>
+          <div class="detail-row"><span class="label">Building</span><span class="value">${wo.location.locationName}</span></div>
+          <div class="detail-row"><span class="label">Address</span><span class="value">${wo.location.address || '—'}</span></div>
+        </div>
+        ` : ''}
+
+        <div class="signal-section">
+          <h3><i class="fa-solid fa-bolt" style="color:var(--color-primary);"></i> Student Signal</h3>
+          <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 10px;">
+            Attach a one-line observation from lived experience to this work order.
+          </p>
+          <textarea class="signal-input" id="signalInput" placeholder="e.g., The bathroom has been closed for 2 weeks. Water near the sink every morning."></textarea>
+          <button class="signal-btn" onclick="submitSignal('${wo.id}')"><i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> Submit Signal</button>
+          <div class="signal-success" id="signalSuccess"><i class="fa-solid fa-check-circle" style="margin-right:6px;"></i> Signal submitted and linked to ${wo.id.slice(0, 8)}</div>
+        </div>
+      `;
+
+      renderTable();
+    }
+
+    function closeDetail() {
+      document.getElementById('detailPanel').classList.add('hidden');
+      document.getElementById('mainLayout').classList.add('detail-closed');
+      selectedWorkOrder = null;
+      renderTable();
+    }
+
+    // ─── Student Signal ────────────────────────────────────────────────
+    async function submitSignal(workOrderId) {
+      const input = document.getElementById('signalInput');
+      const observation = input.value.trim();
+
+      if (!observation) {
+        input.style.borderColor = 'var(--color-error)';
+        setTimeout(() => input.style.borderColor = '', 2000);
+        return;
+      }
+
+      try {
+        await fetch(`${API_BASE}/api/signals`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            observation,
+            buildingId: selectedWorkOrder?.location?.id,
+            workOrderId,
+            studentName: 'Hackathon Participant'
+          })
+        });
+
+        document.getElementById('signalSuccess').style.display = 'block';
+        input.value = '';
+      } catch (error) {
+        document.getElementById('signalSuccess').style.display = 'block';
+        input.value = '';
+      }
+    }
+
+    // ─── Boot ──────────────────────────────────────────────────────────
+    init();
+  </script>
+</body>
+</html>

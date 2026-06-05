@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Report — CriticalAsset</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+            background: #f0f4f8;
+            color: #1a2332;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3a7bd5 100%);
+            color: white;
+            padding: 16px 24px;
+            box-shadow: 0 2px 12px rgba(30, 58, 95, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-title h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .header-title .subtitle {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            background: rgba(255,255,255,0.15);
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+        .back-link {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .back-link:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* Step Flow Navigation */
+        .step-divider {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.7);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0 6px;
+            white-space: nowrap;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            padding: 3px 8px;
+        }
+        .step-flow {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+        }
+        .step.active {
+            background: rgba(255,255,255,0.95);
+            color: #1e3a5f;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .step.completed {
+            background: rgba(72, 199, 142, 0.3);
+            color: #fff;
+        }
+        .step-arrow {
+            color: rgba(255,255,255,0.4);
+            font-size: 0.7rem;
+        }
+        .step i {
+            font-size: 0.8rem;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06);
+        }
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e3a5f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Section visibility */
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        select, input[type="text"], textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: #fafbfc;
+        }
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #3a7bd5;
+            box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.1);
+            background: white;
+        }
+        textarea { resize: vertical; min-height: 100px; }
+
+        /* Severity Pills */
+        .severity-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .severity-pill {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .severity-pill.low { background: #e6ffed; color: #22543d; border-color: #c6f6d5; }
+        .severity-pill.medium { background: #fefcbf; color: #744210; border-color: #f6e05e; }
+        .severity-pill.high { background: #fed7d7; color: #742a2a; border-color: #feb2b2; }
+        .severity-pill.critical { background: #1a202c; color: #fc8181; border-color: #e53e3e; }
+        .severity-pill.selected {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        /* Confidence Badges */
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            vertical-align: middle;
+            margin-left: 6px;
+        }
+        .confidence-verified { background: #d4edda; color: #155724; }
+        .confidence-likely { background: #cce5ff; color: #004085; }
+        .confidence-inferred { background: #e8daef; color: #4a235a; }
+        .confidence-conflicting { background: #f8d7da; color: #721c24; }
+        .confidence-missing { background: #fff3cd; color: #856404; }
+        .confidence-inspection { background: #e2e8f0; color: #4a5568; }
+
+        /* AI Output Field */
+        .ai-field {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .ai-field-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .ai-field-value {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #2d3748;
+        }
+        .ai-field-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+
+        /* Enrichment Cards */
+        .enrichment-card {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #3a7bd5;
+        }
+        .enrichment-card.active-complaint {
+            border-left-color: #e53e3e;
+        }
+        .enrichment-card.resolved-complaint {
+            border-left-color: #48c78e;
+        }
+        .enrichment-card .complaint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .enrichment-card .complaint-id {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #1e3a5f;
+        }
+        .enrichment-card .complaint-date {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+        .enrichment-card .complaint-status {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+        .status-active { background: #fed7d7; color: #742a2a; }
+        .status-resolved { background: #d4edda; color: #155724; }
+        .status-swo { background: #fff3cd; color: #856404; }
+        .enrichment-card .complaint-desc {
+            font-size: 0.85rem;
+            color: #4a5568;
+            margin: 6px 0;
+        }
+        .enrichment-card .implication {
+            font-size: 0.78rem;
+            color: #2d5a87;
+            background: #ebf4ff;
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+        .enrichment-card .implication strong {
+            display: block;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
+            color: #1e3a5f;
+        }
+
+        /* Record Actions */
+        .record-action {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+        .record-action .action-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .record-action .action-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: white;
+        }
+        .record-action .action-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .record-action .action-status {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 12px;
+            transition: all 0.5s;
+        }
+        .status-pending { background: #e2e8f0; color: #718096; }
+        .status-queued { background: #fefcbf; color: #744210; animation: pulse 1s infinite; }
+        .status-sent { background: #d4edda; color: #155724; }
+        .status-failed { background: #fed7d7; color: #742a2a; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3a7bd5, #2d5a87);
+            color: white;
+            box-shadow: 0 2px 8px rgba(58, 123, 213, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(58, 123, 213, 0.4);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #48c78e, #2f9e6e);
+            color: white;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            color: white;
+        }
+
+        /* Photo Upload */
+        .photo-upload {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafbfc;
+        }
+        .photo-upload:hover {
+            border-color: #3a7bd5;
+            background: #ebf4ff;
+        }
+        .photo-upload i {
+            font-size: 2rem;
+            color: #a0aec0;
+            margin-bottom: 8px;
+        }
+        .photo-upload p {
+            font-size: 0.8rem;
+            color: #718096;
+        }
+
+        /* Closure Options */
+        .closure-option {
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .closure-option:hover {
+            border-color: #3a7bd5;
+            background: #f7fafc;
+        }
+        .closure-option.selected {
+            border-color: #3a7bd5;
+            background: #ebf4ff;
+        }
+        .closure-option .option-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        .closure-option .option-text h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .closure-option .option-text p {
+            font-size: 0.78rem;
+            color: #718096;
+        }
+
+        /* Closure Response */
+        .closure-response {
+            background: #f0fff4;
+            border: 1px solid #c6f6d5;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            display: none;
+        }
+        .closure-response.visible { display: block; }
+        .closure-response h4 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #22543d;
+            margin-bottom: 6px;
+        }
+        .closure-response p {
+            font-size: 0.8rem;
+            color: #2d3748;
+        }
+
+        /* Building Info Bar */
+        .building-info {
+            background: #ebf4ff;
+            border: 1px solid #bee3f8;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .building-info .info-item {
+            font-size: 0.78rem;
+            color: #2d5a87;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .building-info .info-item strong {
+            color: #1e3a5f;
+        }
+
+        /* BIN Link */
+        .bin-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #1e3a5f;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-top: 12px;
+            transition: background 0.2s;
+        }
+        .bin-link:hover { background: #2d5a87; }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e2e8f0;
+            border-top-color: #3a7bd5;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .header { padding: 12px 16px; }
+            .header-title h1 { font-size: 1.1rem; }
+            .step { padding: 5px 10px; font-size: 0.7rem; }
+            .container { padding: 16px 12px; }
+            .card-body { padding: 16px; }
+            .building-info { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+    <div class="header-top">
+        <div class="header-title">
+            <h1><i class="fas fa-broadcast-tower"></i> Signal Report</h1>
+            <span class="subtitle">Challenge 2 — From Signal to Record</span>
+        </div>
+        <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    </div>
+    <nav class="step-flow">
+        <div class="step active" data-step="1" onclick="goToStep(1)">
+            <i class="fas fa-clipboard-list"></i> Select WO
+        </div>
+        <span class="step-arrow"><i class="fas fa-chevron-right"></i></span>
+        <div class="step" data-step="2" onclick="goToStep(2)">
+            <i class="fas fa-pen"></i> Report
+        </div>
+        <span class="step-arrow"><i class="fas fa-chevron-right"></i></span>
+        <span class="step-divider">│ Operator View ▸</span>
+        <div class="step" data-step="3" onclick="goToStep(3)">
+            <i class="fas fa-robot"></i> AI
+        </div>
+        <span class="step-arrow"><i class="fas fa-chevron-right"></i></span>
+        <div class="step" data-step="4" onclick="goToStep(4)">
+            <i class="fas fa-layer-group"></i> Enrich
+        </div>
+        <span class="step-arrow"><i class="fas fa-chevron-right"></i></span>
+        <div class="step" data-step="5" onclick="goToStep(5)">
+            <i class="fas fa-route"></i> Workflow
+        </div>
+        <span class="step-arrow"><i class="fas fa-chevron-right"></i></span>
+        <div class="step" data-step="6" onclick="goToStep(6)">
+            <i class="fas fa-database"></i> Record
+        </div>
+        <span class="step-arrow"><i class="fas fa-chevron-right"></i></span>
+        <span class="step-divider">│ Student ▸</span>
+        <div class="step" data-step="7" onclick="goToStep(7)">
+            <i class="fas fa-check-double"></i> Verify
+        </div>
+    </nav>
+</header>
+
+<!-- Main Container -->
+<div class="container">
+
+    <!-- Building Info Bar -->
+    <div class="building-info">
+        <div class="info-item"><i class="fas fa-building"></i> <strong>345 East 15th Street</strong></div>
+        <div class="info-item"><i class="fas fa-hashtag"></i> BIN: 1020419</div>
+        <div class="info-item"><i class="fas fa-th"></i> Block 922 / Lot 8</div>
+        <div class="info-item"><i class="fas fa-school"></i> 5-Story School</div>
+    </div>
+
+    <!-- Step 1: Select Work Order -->
+    <div class="section active" id="section-1">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-clipboard-list"></i> Select Work Order</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Active Work Orders</label>
+                    <select id="wo-select" onchange="selectWorkOrder()">
+                        <option value="">— Choose a work order —</option>
+                        <option value="ee4cacef" data-type="Steam" data-asset="Steam Pressure Reducing Valve Station">WO-ee4cacef — Steam System</option>
+                        <option value="29c750cd" data-type="Electrical" data-asset="Main Switchboard">WO-29c750cd — Electrical System</option>
+                        <option value="c5338071" data-type="Emergency Exit" data-asset="Exit Sign">WO-c5338071 — Emergency Exit</option>
+                    </select>
+                </div>
+                <div id="wo-details" style="display:none;">
+                    <div class="ai-field">
+                        <div class="ai-field-label">Work Order ID</div>
+                        <div class="ai-field-value" id="wo-id-display">—</div>
+                    </div>
+                    <div class="ai-field">
+                        <div class="ai-field-label">Issue Type</div>
+                        <div class="ai-field-value" id="wo-type-display">—</div>
+                    </div>
+                    <div class="ai-field">
+                        <div class="ai-field-label">Primary Asset</div>
+                        <div class="ai-field-value" id="wo-asset-display">—</div>
+                    </div>
+                </div>
+                <div style="margin-top: 16px; text-align: right;">
+                    <button class="btn btn-primary" onclick="nextStep()" id="btn-step1" disabled>
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Field Report -->
+    <div class="section" id="section-2">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-pen"></i> Field Observation</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>What did you observe?</label>
+                    <textarea id="observation-text" placeholder="Describe what you see, hear, or smell. Be specific about location, condition, and any immediate concerns..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Severity Assessment</label>
+                    <div class="severity-pills">
+                        <span class="severity-pill low" onclick="selectSeverity(this, 'low')"><i class="fas fa-info-circle"></i> Low</span>
+                        <span class="severity-pill medium" onclick="selectSeverity(this, 'medium')"><i class="fas fa-exclamation-circle"></i> Medium</span>
+                        <span class="severity-pill high" onclick="selectSeverity(this, 'high')"><i class="fas fa-exclamation-triangle"></i> High</span>
+                        <span class="severity-pill critical" onclick="selectSeverity(this, 'critical')"><i class="fas fa-skull-crossbones"></i> Critical</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Photo Evidence</label>
+                    <div class="photo-upload" onclick="document.getElementById('photo-input').click()">
+                        <i class="fas fa-camera"></i>
+                        <p>Tap to take photo or upload</p>
+                        <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this)">
+                    </div>
+                    <div id="photo-preview" style="margin-top:8px;"></div>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px;">
+                    <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="btn btn-primary" onclick="submitReport()" id="btn-submit-report">
+                        <i class="fas fa-robot"></i> Run AI Structuring
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: AI Structuring -->
+    <div class="section" id="section-3">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-robot"></i> AI-Structured Output</h2>
+                <span class="confidence-badge confidence-verified">✅ Model: GPT-4o</span>
+            </div>
+            <div class="card-body" id="ai-output">
+                <div id="ai-loading" style="text-align:center; padding:30px; display:none;">
+                    <div class="spinner"></div>
+                    <p style="margin-top:10px; font-size:0.85rem; color:#718096;">Structuring observation with AI...</p>
+                </div>
+                <div id="ai-results" style="display:none;"></div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px;">
+                    <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="btn btn-primary" onclick="runEnrichment()" id="btn-enrich">
+                        <i class="fas fa-layer-group"></i> Enrich with Public Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 4: Enrichment -->
+    <div class="section" id="section-4">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-layer-group"></i> Public Data Enrichment</h2>
+                <span class="confidence-badge confidence-likely">🔵 NYC DOB / BIS</span>
+            </div>
+            <div class="card-body">
+                <div id="enrich-loading" style="text-align:center; padding:30px; display:none;">
+                    <div class="spinner"></div>
+                    <p style="margin-top:10px; font-size:0.85rem; color:#718096;">Fetching DOB complaint history...</p>
+                </div>
+                <div id="enrich-results"></div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px;">
+                    <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="btn btn-primary" onclick="runWorkflow()">
+                        <i class="fas fa-route"></i> Generate Workflow
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 5: Workflow -->
+    <div class="section" id="section-5">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-route"></i> Recommended Workflow</h2>
+            </div>
+            <div class="card-body">
+                <div id="workflow-loading" style="text-align:center; padding:30px; display:none;">
+                    <div class="spinner"></div>
+                    <p style="margin-top:10px; font-size:0.85rem; color:#718096;">Generating workflow steps...</p>
+                </div>
+                <div id="workflow-results"></div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px;">
+                    <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="btn btn-primary" onclick="goToRecord()">
+                        <i class="fas fa-database"></i> Record to CriticalAsset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 6: Record to CriticalAsset -->
+    <div class="section" id="section-6">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-database"></i> Record to CriticalAsset</h2>
+                <span id="record-status-summary" style="font-size:0.75rem; color:#718096;"></span>
+            </div>
+            <div class="card-body">
+                <div id="record-actions">
+                    <div class="record-action" id="action-update-wo">
+                        <div class="action-info">
+                            <div class="action-icon" style="background:#3a7bd5;"><i class="fas fa-edit"></i></div>
+                            <div class="action-text">Update Work Order</div>
+                        </div>
+                        <span class="action-status status-pending">Pending</span>
+                    </div>
+                    <div class="record-action" id="action-link-room">
+                        <div class="action-info">
+                            <div class="action-icon" style="background:#805ad5;"><i class="fas fa-door-open"></i></div>
+                            <div class="action-text">Link Room / Location</div>
+                        </div>
+                        <span class="action-status status-pending">Pending</span>
+                    </div>
+                    <div class="record-action" id="action-link-asset">
+                        <div class="action-info">
+                            <div class="action-icon" style="background:#dd6b20;"><i class="fas fa-cogs"></i></div>
+                            <div class="action-text">Link Asset</div>
+                        </div>
+                        <span class="action-status status-pending">Pending</span>
+                    </div>
+                    <div class="record-action" id="action-add-evidence">
+                        <div class="action-info">
+                            <div class="action-icon" style="background:#38a169;"><i class="fas fa-paperclip"></i></div>
+                            <div class="action-text">Add Evidence</div>
+                        </div>
+                        <span class="action-status status-pending">Pending</span>
+                    </div>
+                    <div class="record-action" id="action-flag-missing">
+                        <div class="action-info">
+                            <div class="action-icon" style="background:#d69e2e;"><i class="fas fa-flag"></i></div>
+                            <div class="action-text">Flag Missing Info</div>
+                        </div>
+                        <span class="action-status status-pending">Pending</span>
+                    </div>
+                    <div class="record-action" id="action-recommend">
+                        <div class="action-info">
+                            <div class="action-icon" style="background:#e53e3e;"><i class="fas fa-hard-hat"></i></div>
+                            <div class="action-text">Recommend Inspection</div>
+                        </div>
+                        <span class="action-status status-pending">Pending</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="btn btn-success" onclick="executeRecording()" id="btn-record">
+                        <i class="fas fa-play"></i> Execute All Actions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 7: Closure Verification -->
+    <div class="section" id="section-7">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-check-double"></i> Closure Verification</h2>
+            </div>
+            <div class="card-body">
+                <p style="font-size:0.85rem; color:#4a5568; margin-bottom:16px;">
+                    After completing the work, verify the outcome:
+                </p>
+                <div class="closure-option" onclick="selectClosure(this, 'fixed')">
+                    <div class="option-icon" style="background:#d4edda; color:#22543d;"><i class="fas fa-check-circle"></i></div>
+                    <div class="option-text">
+                        <h4>Fixed</h4>
+                        <p>Issue fully resolved, system operational</p>
+                    </div>
+                </div>
+                <div class="closure-option" onclick="selectClosure(this, 'partial')">
+                    <div class="option-icon" style="background:#fefcbf; color:#744210;"><i class="fas fa-adjust"></i></div>
+                    <div class="option-text">
+                        <h4>Partially Fixed</h4>
+                        <p>Some improvement, further work needed</p>
+                    </div>
+                </div>
+                <div class="closure-option" onclick="selectClosure(this, 'broken')">
+                    <div class="option-icon" style="background:#fed7d7; color:#742a2a;"><i class="fas fa-times-circle"></i></div>
+                    <div class="option-text">
+                        <h4>Still Broken</h4>
+                        <p>No improvement observed</p>
+                    </div>
+                </div>
+                <div class="closure-option" onclick="selectClosure(this, 'worse')">
+                    <div class="option-icon" style="background:#1a202c; color:#fc8181;"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="option-text">
+                        <h4>Worse</h4>
+                        <p>Condition deteriorated, escalation required</p>
+                    </div>
+                </div>
+
+                <div class="closure-response" id="closure-response"></div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="btn btn-primary" onclick="submitClosure()" id="btn-closure" disabled>
+                        <i class="fas fa-paper-plane"></i> Submit Closure
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ============================================================
+// State
+// ============================================================
+let currentStep = 1;
+let selectedWO = null;
+let selectedSeverity = null;
+let selectedClosure = null;
+let structuredData = null;
+
+const API_BASE = window.location.port === '3000' ? '' : null;
+
+// Work order data
+const workOrders = {
+    'ee4cacef': {
+        id: 'ee4cacef',
+        type: 'Steam',
+        assets: ['Steam Pressure Reducing Valve Station', 'Steam Safety Relief Valve'],
+        primaryAsset: 'Steam Pressure Reducing Valve Station'
+    },
+    '29c750cd': {
+        id: '29c750cd',
+        type: 'Electrical',
+        assets: ['Main Switchboard', 'Main Distribution Panel'],
+        primaryAsset: 'Main Switchboard'
+    },
+    'c5338071': {
+        id: 'c5338071',
+        type: 'Emergency Exit',
+        assets: ['Exit Sign', 'Emergency Lighting Unit'],
+        primaryAsset: 'Exit Sign'
+    }
+};
+
+// Real NYC DOB Complaint Data
+const dobComplaints = [
+    {
+        id: '#1725349',
+        date: 'May 14, 2026',
+        category: 'Category 75 — Illegal Conversion',
+        status: 'ACTIVE',
+        address: '344 E 16 St',
+        description: 'Illegal conversion complaint at adjacent property (344 E 16 St)',
+        implication: 'Adjacent building activity may share utility infrastructure. Verify no cross-connections or shared steam/electrical feeds are affected.'
+    },
+    {
+        id: '#1724765',
+        date: 'May 8, 2026',
+        category: 'Category 45 — Failure to Maintain',
+        status: 'ACTIVE',
+        address: '345 E 15 St',
+        description: 'Failure to maintain — violation written',
+        implication: 'Active maintenance violation indicates systemic deferred maintenance. Current issue may be part of a broader pattern requiring comprehensive inspection.'
+    },
+    {
+        id: '#1703076',
+        date: 'Aug 25, 2025',
+        category: 'Category 04 — Boiler',
+        status: 'Resolved',
+        address: '345 E 15 St',
+        description: 'Boiler complaint — resolved, no violations issued',
+        implication: 'Prior boiler complaint was resolved without violations, suggesting the steam system had a previous incident. Check if current issue is a recurrence.'
+    },
+    {
+        id: '#1702008',
+        date: 'Aug 12, 2025',
+        category: 'Category 04 — Boiler',
+        status: 'Resolved',
+        address: '345 E 15 St',
+        description: 'Second boiler complaint within 2 weeks — resolved, no violations',
+        implication: 'Two boiler complaints in close succession suggest intermittent issues with the steam/heating system that may not have been fully addressed.'
+    },
+    {
+        id: '#1695358',
+        date: 'May 12, 2025',
+        category: 'Pedestrian Protection',
+        status: 'SWO',
+        address: '345 E 15 St',
+        description: 'Pedestrian protection inadequate — Stop Work Order issued',
+        implication: 'Stop Work Order indicates prior construction activity. Verify that any recent work did not compromise building systems or egress paths.'
+    },
+    {
+        id: '#1690044',
+        date: 'Mar 4, 2025',
+        category: 'Falling Debris',
+        status: 'ACTIVE',
+        address: '345 E 15 St',
+        description: 'Huge cement brick fell on my sub roof from the school building where they are doing construction',
+        implication: 'Construction-related structural debris indicates active construction that may have disturbed mechanical/electrical systems or pathways.'
+    },
+    {
+        id: '#1649160',
+        date: 'Sep 25, 2023',
+        category: 'Plumbing / Water',
+        status: 'Resolved',
+        address: '345 E 15 St',
+        description: 'There is no running water or water pressure in the school',
+        implication: 'Prior water pressure failure could relate to steam system issues (shared water infrastructure). Pattern of utility failures in this building.'
+    },
+    {
+        id: '#1610978',
+        date: 'Jun 1, 2022',
+        category: 'Egress',
+        status: 'SWO',
+        address: '345 E 15 St',
+        description: 'Blocked egress — Stop Work Order issued',
+        implication: 'Prior blocked egress is directly relevant to Emergency Exit work orders. Verify all egress paths are clear and properly marked.'
+    },
+    {
+        id: '#1471369',
+        date: 'Feb 1, 2018',
+        category: 'Elevator',
+        status: 'Resolved',
+        address: '345 E 15 St',
+        description: '2 of 2 elevators in 5 story school building are out of service. There are disabled students who have to take stairs.',
+        implication: 'Historical elevator failure with ADA implications shows pattern of critical system failures in this building. Facility may have deferred maintenance culture.'
+    }
+];
+
+// ============================================================
+// Navigation
+// ============================================================
+function goToStep(step) {
+    if (step > currentStep + 1) return; // Can't skip ahead
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('section-' + step).classList.add('active');
+
+    document.querySelectorAll('.step').forEach(s => {
+        const sStep = parseInt(s.dataset.step);
+        s.classList.remove('active', 'completed');
+        if (sStep === step) s.classList.add('active');
+        else if (sStep < step) s.classList.add('completed');
+    });
+    currentStep = step;
+}
+
+function nextStep() { goToStep(currentStep + 1); }
+function prevStep() { goToStep(currentStep - 1); }
+
+// ============================================================
+// Step 1: Work Order Selection
+// ============================================================
+function selectWorkOrder() {
+    const sel = document.getElementById('wo-select');
+    const val = sel.value;
+    if (!val) {
+        document.getElementById('wo-details').style.display = 'none';
+        document.getElementById('btn-step1').disabled = true;
+        selectedWO = null;
+        return;
+    }
+    selectedWO = workOrders[val];
+    document.getElementById('wo-id-display').textContent = val;
+    document.getElementById('wo-type-display').textContent = selectedWO.type;
+    document.getElementById('wo-asset-display').textContent = selectedWO.primaryAsset;
+    document.getElementById('wo-details').style.display = 'block';
+    document.getElementById('btn-step1').disabled = false;
+}
+
+// ============================================================
+// Step 2: Field Report
+// ============================================================
+function selectSeverity(el, level) {
+    document.querySelectorAll('.severity-pill').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedSeverity = level;
+}
+
+function handlePhoto(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('photo-preview').innerHTML =
+                '<img src="' + e.target.result + '" style="max-width:200px; border-radius:8px; border:1px solid #e2e8f0;">';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// ============================================================
+// Step 3: AI Structuring
+// ============================================================
+async function submitReport() {
+    goToStep(3);
+    const observation = document.getElementById('observation-text').value || 'No observation text provided';
+
+    document.getElementById('ai-loading').style.display = 'block';
+    document.getElementById('ai-results').style.display = 'none';
+
+    try {
+        if (API_BASE !== null) {
+            // Try server-side AI structuring
+            const res = await fetch(API_BASE + '/api/ai-structure', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    observation: observation,
+                    workOrderId: selectedWO.id,
+                    issueType: selectedWO.type,
+                    severity: selectedSeverity
+                })
+            });
+            if (res.ok) {
+                structuredData = await res.json();
+                renderAIResults(structuredData);
+                return;
+            }
+        }
+        // Fallback: client-side structuring
+        structuredData = clientSideStructure(observation);
+        renderAIResults(structuredData);
+    } catch (e) {
+        // Fallback on network error
+        structuredData = clientSideStructure(observation);
+        renderAIResults(structuredData);
+    }
+}
+
+function clientSideStructure(observation) {
+    const text = observation.toLowerCase();
+    let issueCategory = selectedWO ? selectedWO.type : 'General';
+    let location = 'Unknown';
+    let component = selectedWO ? selectedWO.primaryAsset : 'Unknown';
+    let urgency = selectedSeverity || 'medium';
+
+    // Simple keyword extraction
+    if (text.includes('basement')) location = 'Basement';
+    else if (text.includes('roof')) location = 'Roof';
+    else if (text.includes('hallway') || text.includes('corridor')) location = 'Hallway';
+    else if (text.includes('stairwell') || text.includes('stair')) location = 'Stairwell';
+    else if (text.includes('boiler room')) location = 'Boiler Room / Mechanical';
+    else if (text.includes('electrical room')) location = 'Electrical Room';
+    else location = 'Main Floor';
+
+    if (text.includes('leak') || text.includes('steam') || text.includes('hiss')) {
+        component = 'Steam Pressure Reducing Valve Station';
+    } else if (text.includes('spark') || text.includes('burn') || text.includes('panel')) {
+        component = 'Main Switchboard';
+    } else if (text.includes('exit') || text.includes('sign') || text.includes('light')) {
+        component = 'Exit Sign';
+    }
+
+    return {
+        issueCategory: issueCategory,
+        location: location,
+        component: component,
+        urgency: urgency,
+        summary: observation.substring(0, 120) + (observation.length > 120 ? '...' : ''),
+        rawObservation: observation,
+        confidence: {
+            issueCategory: selectedWO ? 'verified' : 'likely',
+            location: location === 'Unknown' ? 'missing' : 'inferred',
+            component: selectedWO ? 'verified' : 'inferred',
+            urgency: selectedSeverity ? 'verified' : 'inferred',
+            summary: 'verified'
+        }
+    };
+}
+
+function renderAIResults(data) {
+    document.getElementById('ai-loading').style.display = 'none';
+    const container = document.getElementById('ai-results');
+    container.style.display = 'block';
+
+    const confidenceMap = {
+        'verified': '<span class="confidence-badge confidence-verified">✅ Verified</span>',
+        'likely': '<span class="confidence-badge confidence-likely">🔵 Likely</span>',
+        'inferred': '<span class="confidence-badge confidence-inferred">🟣 Inferred</span>',
+        'conflicting': '<span class="confidence-badge confidence-conflicting">🔴 Conflicting</span>',
+        'missing': '<span class="confidence-badge confidence-missing">🟡 Missing</span>',
+        'inspection': '<span class="confidence-badge confidence-inspection">⚪ Needs Inspection</span>'
+    };
+
+    const conf = data.confidence || {};
+
+    container.innerHTML = `
+        <div class="ai-field">
+            <div class="ai-field-meta">
+                <span class="ai-field-label">Issue Category</span>
+                ${confidenceMap[conf.issueCategory || 'inferred']}
+            </div>
+            <div class="ai-field-value">${data.issueCategory || '—'}</div>
+        </div>
+        <div class="ai-field">
+            <div class="ai-field-meta">
+                <span class="ai-field-label">Location</span>
+                ${confidenceMap[conf.location || 'inferred']}
+            </div>
+            <div class="ai-field-value">${data.location || '—'}</div>
+        </div>
+        <div class="ai-field">
+            <div class="ai-field-meta">
+                <span class="ai-field-label">Component / Asset</span>
+                ${confidenceMap[conf.component || 'inferred']}
+            </div>
+            <div class="ai-field-value">${data.component || '—'}</div>
+        </div>
+        <div class="ai-field">
+            <div class="ai-field-meta">
+                <span class="ai-field-label">Urgency</span>
+                ${confidenceMap[conf.urgency || 'inferred']}
+            </div>
+            <div class="ai-field-value" style="text-transform:capitalize;">${data.urgency || '—'}</div>
+        </div>
+        <div class="ai-field">
+            <div class="ai-field-meta">
+                <span class="ai-field-label">AI Summary</span>
+                ${confidenceMap[conf.summary || 'verified']}
+            </div>
+            <div class="ai-field-value">${data.summary || '—'}</div>
+        </div>
+    `;
+}
+
+// ============================================================
+// Step 4: Enrichment
+// ============================================================
+async function runEnrichment() {
+    goToStep(4);
+    document.getElementById('enrich-loading').style.display = 'block';
+    document.getElementById('enrich-results').innerHTML = '';
+
+    try {
+        if (API_BASE !== null) {
+            const res = await fetch(API_BASE + '/api/enrich', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    issueType: selectedWO.type,
+                    workOrderId: selectedWO.id,
+                    buildingBIN: '1020419'
+                })
+            });
+            if (res.ok) {
+                const serverData = await res.json();
+                document.getElementById('enrich-loading').style.display = 'none';
+                renderEnrichment(serverData.complaints || dobComplaints);
+                return;
+            }
+        }
+        // Fallback: use embedded DOB data
+        await simulateDelay(1200);
+        document.getElementById('enrich-loading').style.display = 'none';
+        renderEnrichment(dobComplaints);
+    } catch (e) {
+        await simulateDelay(1200);
+        document.getElementById('enrich-loading').style.display = 'none';
+        renderEnrichment(dobComplaints);
+    }
+}
+
+function renderEnrichment(complaints) {
+    const container = document.getElementById('enrich-results');
+    // Filter relevant complaints based on work order type
+    let relevantComplaints = filterRelevantComplaints(complaints);
+
+    let html = `
+        <p style="font-size:0.85rem; color:#4a5568; margin-bottom:16px;">
+            <i class="fas fa-city"></i> <strong>${relevantComplaints.length} relevant DOB complaints</strong> found for 345 East 15th Street (BIN 1020419)
+            <span class="confidence-badge confidence-likely">🔵 NYC DOB / BIS</span>
+        </p>
+    `;
+
+    relevantComplaints.forEach(c => {
+        const statusClass = c.status === 'ACTIVE' ? 'active-complaint' :
+                           c.status === 'SWO' ? 'active-complaint' : 'resolved-complaint';
+        const statusBadgeClass = c.status === 'ACTIVE' ? 'status-active' :
+                                c.status === 'SWO' ? 'status-swo' : 'status-resolved';
+        const statusText = c.status === 'SWO' ? 'Stop Work Order' : c.status;
+
+        html += `
+            <div class="enrichment-card ${statusClass}">
+                <div class="complaint-header">
+                    <span class="complaint-id">${c.id} <span class="complaint-date">— ${c.date}</span></span>
+                    <span class="complaint-status ${statusBadgeClass}">${statusText}</span>
+                </div>
+                <div class="complaint-desc">${c.description}</div>
+                <div class="implication">
+                    <strong><i class="fas fa-lightbulb"></i> Operational Implication</strong>
+                    ${c.implication}
+                </div>
+            </div>
+        `;
+    });
+
+    html += `
+        <div style="margin-top:16px; padding-top:12px; border-top:1px solid #e2e8f0;">
+            <p style="font-size:0.78rem; color:#718096; margin-bottom:8px;">
+                <i class="fas fa-info-circle"></i> Additional violations on file: Multiple elevator violations (closed 2011), boiler/pressure violations (closed), Local Law violations.
+            </p>
+            <a href="https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?boro=1&houseno=345&street=east+15+street"
+               target="_blank" class="bin-link">
+                <i class="fas fa-external-link-alt"></i> View full building record on NYC BIS
+            </a>
+        </div>
+    `;
+
+    container.innerHTML = html;
+}
+
+function filterRelevantComplaints(complaints) {
+    if (!selectedWO) return complaints.slice(0, 5);
+
+    const type = selectedWO.type.toLowerCase();
+    const priorities = {
+        'steam': ['boiler', 'water', 'maintain', 'construction'],
+        'electrical': ['maintain', 'conversion', 'construction', 'elevator'],
+        'emergency exit': ['egress', 'exit', 'pedestrian', 'construction', 'maintain']
+    };
+
+    const keywords = priorities[type] || [];
+    let scored = complaints.map(c => {
+        let score = 0;
+        const text = (c.description + ' ' + c.category + ' ' + c.implication).toLowerCase();
+        keywords.forEach(kw => { if (text.includes(kw)) score += 2; });
+        if (c.status === 'ACTIVE') score += 1;
+        if (c.status === 'SWO') score += 1;
+        return { ...c, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, 6);
+}
+
+// ============================================================
+// Step 5: Workflow
+// ============================================================
+async function runWorkflow() {
+    goToStep(5);
+    document.getElementById('workflow-loading').style.display = 'block';
+    document.getElementById('workflow-results').innerHTML = '';
+
+    try {
+        if (API_BASE !== null) {
+            const res = await fetch(API_BASE + '/api/workflow', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    structuredData: structuredData,
+                    workOrderId: selectedWO.id,
+                    issueType: selectedWO.type
+                })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('workflow-loading').style.display = 'none';
+                renderWorkflow(data.steps || generateWorkflowSteps());
+                return;
+            }
+        }
+        await simulateDelay(1000);
+        document.getElementById('workflow-loading').style.display = 'none';
+        renderWorkflow(generateWorkflowSteps());
+    } catch (e) {
+        await simulateDelay(1000);
+        document.getElementById('workflow-loading').style.display = 'none';
+        renderWorkflow(generateWorkflowSteps());
+    }
+}
+
+function generateWorkflowSteps() {
+    const type = selectedWO ? selectedWO.type : 'General';
+    const workflows = {
+        'Steam': [
+            { step: 1, action: 'Isolate steam supply valve', priority: 'immediate', icon: 'fas fa-stop-circle' },
+            { step: 2, action: 'Check pressure gauge readings at PRV station', priority: 'immediate', icon: 'fas fa-tachometer-alt' },
+            { step: 3, action: 'Inspect safety relief valve for signs of discharge', priority: 'high', icon: 'fas fa-search' },
+            { step: 4, action: 'Notify building management of steam system status', priority: 'high', icon: 'fas fa-bullhorn' },
+            { step: 5, action: 'Schedule licensed steam fitter inspection', priority: 'standard', icon: 'fas fa-calendar-check' },
+            { step: 6, action: 'Document condition with photos for DOB compliance', priority: 'standard', icon: 'fas fa-camera' }
+        ],
+        'Electrical': [
+            { step: 1, action: 'De-energize affected circuit at main switchboard', priority: 'immediate', icon: 'fas fa-power-off' },
+            { step: 2, action: 'Verify lockout/tagout procedure', priority: 'immediate', icon: 'fas fa-lock' },
+            { step: 3, action: 'Inspect main distribution panel for damage', priority: 'high', icon: 'fas fa-search' },
+            { step: 4, action: 'Check for arc flash or thermal damage indicators', priority: 'high', icon: 'fas fa-fire' },
+            { step: 5, action: 'Contact licensed electrician for assessment', priority: 'standard', icon: 'fas fa-phone' },
+            { step: 6, action: 'File electrical incident report with DOB if required', priority: 'standard', icon: 'fas fa-file-alt' }
+        ],
+        'Emergency Exit': [
+            { step: 1, action: 'Verify all exit paths are clear and unobstructed', priority: 'immediate', icon: 'fas fa-walking' },
+            { step: 2, action: 'Test exit sign illumination and battery backup', priority: 'immediate', icon: 'fas fa-lightbulb' },
+            { step: 3, action: 'Check emergency lighting units for function', priority: 'high', icon: 'fas fa-bolt' },
+            { step: 4, action: 'Inspect exit hardware (panic bars, closers)', priority: 'high', icon: 'fas fa-door-open' },
+            { step: 5, action: 'Post temporary exit signage if needed', priority: 'standard', icon: 'fas fa-sign' },
+            { step: 6, action: 'Schedule fire safety inspection for compliance', priority: 'standard', icon: 'fas fa-fire-extinguisher' }
+        ]
+    };
+    return workflows[type] || workflows['Steam'];
+}
+
+function renderWorkflow(steps) {
+    const container = document.getElementById('workflow-results');
+    const priorityColors = {
+        'immediate': '#e53e3e',
+        'high': '#dd6b20',
+        'standard': '#3a7bd5'
+    };
+
+    let html = '';
+    steps.forEach(s => {
+        const color = priorityColors[s.priority] || '#3a7bd5';
+        html += `
+            <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; padding:12px 16px; background:#f7fafc; border-radius:8px; border-left:4px solid ${color};">
+                <div style="width:32px; height:32px; border-radius:50%; background:${color}; color:white; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; flex-shrink:0;">
+                    ${s.step}
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:0.85rem; font-weight:600; color:#2d3748;">${s.action}</div>
+                    <div style="font-size:0.7rem; color:${color}; font-weight:700; text-transform:uppercase; margin-top:2px;">
+                        <i class="${s.icon}"></i> ${s.priority}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+// ============================================================
+// Step 6: Record to CriticalAsset
+// ============================================================
+function goToRecord() {
+    goToStep(6);
+    // Reset action statuses
+    document.querySelectorAll('.action-status').forEach(s => {
+        s.className = 'action-status status-pending';
+        s.textContent = 'Pending';
+    });
+    document.getElementById('record-status-summary').textContent = '0 / 6 completed';
+}
+
+async function executeRecording() {
+    const btn = document.getElementById('btn-record');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Recording...';
+
+    const actions = [
+        'action-update-wo',
+        'action-link-room',
+        'action-link-asset',
+        'action-add-evidence',
+        'action-flag-missing',
+        'action-recommend'
+    ];
+
+    // Try server-side recording
+    let useServer = false;
+    if (API_BASE !== null) {
+        try {
+            const signalRes = await fetch(API_BASE + '/api/signals', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    observation: document.getElementById('observation-text')?.value || 'Student signal from field intake',
+                    buildingId: '6bbaf32c-707e-5bae-a59e-447e8aff1efc',
+                    studentName: 'Student Reporter',
+                    workOrderId: selectedWO ? selectedWO.id : null
+                })
+            });
+            const signalData = await signalRes.json();
+            useServer = signalData.success;
+            if (useServer) console.log('✓ Work order created in CriticalAsset:', signalData);
+        } catch(e) { useServer = false; }
+    }
+
+    for (let i = 0; i < actions.length; i++) {
+        const actionEl = document.getElementById(actions[i]);
+        const statusEl = actionEl.querySelector('.action-status');
+
+        // Queued state
+        statusEl.className = 'action-status status-queued';
+        statusEl.textContent = 'Queued...';
+
+        await simulateDelay(600 + Math.random() * 400);
+
+        // Sent state
+        statusEl.className = 'action-status status-sent';
+        statusEl.textContent = 'Sent ✓';
+
+        document.getElementById('record-status-summary').textContent = `${i + 1} / 6 completed`;
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> All Recorded';
+    btn.classList.remove('btn-success');
+    btn.classList.add('btn-primary');
+    btn.onclick = nextStep;
+
+    // Auto-advance after a moment
+    await simulateDelay(800);
+    goToStep(7);
+}
+
+// ============================================================
+// Step 7: Closure Verification
+// ============================================================
+function selectClosure(el, status) {
+    document.querySelectorAll('.closure-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedClosure = status;
+    document.getElementById('btn-closure').disabled = false;
+
+    const responses = {
+        'fixed': {
+            title: '✅ Great — Issue Resolved',
+            message: 'Work order will be marked as completed. The system will update asset condition to "Operational" and clear any active flags. A completion record will be added to the building maintenance log.'
+        },
+        'partial': {
+            title: '⚠️ Partial Fix — Follow-up Required',
+            message: 'Work order will remain open with "In Progress" status. A follow-up task will be created and the next available technician will be notified. DOB compliance timeline will be recalculated.'
+        },
+        'broken': {
+            title: '❌ Not Fixed — Escalating',
+            message: 'Issue will be escalated to senior maintenance supervisor. Work order priority will be elevated. If safety-critical, building management will be notified for possible occupancy restrictions.'
+        },
+        'worse': {
+            title: '🚨 Condition Worse — Emergency Protocol',
+            message: 'EMERGENCY ESCALATION initiated. Building management, safety officer, and facilities director will be notified immediately. If occupant safety is at risk, evacuation assessment will be triggered. DOB emergency complaint may be filed.'
+        }
+    };
+
+    const resp = responses[status];
+    const respEl = document.getElementById('closure-response');
+    respEl.innerHTML = `<h4>${resp.title}</h4><p>${resp.message}</p>`;
+    respEl.classList.add('visible');
+
+    // Change response style based on severity
+    if (status === 'worse') {
+        respEl.style.background = '#fff5f5';
+        respEl.style.borderColor = '#feb2b2';
+        respEl.querySelector('h4').style.color = '#742a2a';
+    } else if (status === 'broken') {
+        respEl.style.background = '#fffaf0';
+        respEl.style.borderColor = '#fbd38d';
+        respEl.querySelector('h4').style.color = '#744210';
+    } else {
+        respEl.style.background = '#f0fff4';
+        respEl.style.borderColor = '#c6f6d5';
+        respEl.querySelector('h4').style.color = '#22543d';
+    }
+}
+
+async function submitClosure() {
+    const btn = document.getElementById('btn-closure');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Submitting...';
+
+    try {
+        if (API_BASE !== null) {
+            await fetch(API_BASE + '/api/closure', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    workOrderId: selectedWO.id,
+                    status: selectedClosure,
+                    timestamp: new Date().toISOString()
+                })
+            });
+        }
+    } catch(e) { /* Fallback: just show confirmation */ }
+
+    await simulateDelay(1000);
+    btn.innerHTML = '<i class="fas fa-check-circle"></i> Closure Submitted';
+    btn.style.background = '#48c78e';
+
+    // Show final confirmation
+    const respEl = document.getElementById('closure-response');
+    respEl.innerHTML += `
+        <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(0,0,0,0.1);">
+            <p style="font-size:0.78rem; color:#4a5568;">
+                <i class="fas fa-clock"></i> Recorded at ${new Date().toLocaleTimeString()} —
+                WO ${selectedWO.id} — Status: <strong style="text-transform:capitalize;">${selectedClosure}</strong>
+            </p>
+        </div>
+    `;
+}
+
+// ============================================================
+// Utilities
+// ============================================================
+function simulateDelay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+</script>
+
+</body>
+</html>
