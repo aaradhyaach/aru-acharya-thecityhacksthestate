@@ -64,6 +64,18 @@
         }
 
         /* Step Flow Navigation */
+        .step-divider {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.7);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0 6px;
+            white-space: nowrap;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            padding: 3px 8px;
+        }
         .step-flow {
             display: flex;
             align-items: center;
@@ -568,6 +580,7 @@
             <i class="fas fa-pen"></i> Report
         </div>
         <span class="step-arrow"><i class="fas fa-chevron-right"></i></span>
+        <span class="step-divider">│ Operator View ▸</span>
         <div class="step" data-step="3" onclick="goToStep(3)">
             <i class="fas fa-robot"></i> AI
         </div>
@@ -584,6 +597,7 @@
             <i class="fas fa-database"></i> Record
         </div>
         <span class="step-arrow"><i class="fas fa-chevron-right"></i></span>
+        <span class="step-divider">│ Student ▸</span>
         <div class="step" data-step="7" onclick="goToStep(7)">
             <i class="fas fa-check-double"></i> Verify
         </div>
@@ -1412,8 +1426,19 @@ async function executeRecording() {
     let useServer = false;
     if (API_BASE !== null) {
         try {
-            const testRes = await fetch(API_BASE + '/api/workflow', { method: 'OPTIONS' });
-            useServer = true;
+            const signalRes = await fetch(API_BASE + '/api/signals', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    observation: document.getElementById('observation-text')?.value || 'Student signal from field intake',
+                    buildingId: '6bbaf32c-707e-5bae-a59e-447e8aff1efc',
+                    studentName: 'Student Reporter',
+                    workOrderId: selectedWO ? selectedWO.id : null
+                })
+            });
+            const signalData = await signalRes.json();
+            useServer = signalData.success;
+            if (useServer) console.log('✓ Work order created in CriticalAsset:', signalData);
         } catch(e) { useServer = false; }
     }
 
