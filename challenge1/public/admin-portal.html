@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CriticalAsset · 345 East 15th Street Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --color-bg: #f8f9fa;
+      --color-surface: #ffffff;
+      --color-text: #1a1a2e;
+      --color-text-secondary: #44546f;
+      --color-text-muted: #8993a4;
+      --color-border: #e2e8f0;
+      --color-border-light: #f1f5f9;
+      --color-primary: #0052CC;
+      --color-primary-light: #deebff;
+      --color-primary-dark: #0747A6;
+      --color-success: #36b37e;
+      --color-error: #de350b;
+      --color-warning: #ff991f;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.15);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      min-height: 100vh;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ─── Header ─────────────────────────────────────────────────── */
+    .header {
+      background: linear-gradient(135deg, #0052CC 0%, #0747A6 100%);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0, 82, 204, 0.3);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-left .logo {
+      width: 32px;
+      height: 32px;
+      background: rgba(255,255,255,0.2);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .header-left h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .signal-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .signal-link:hover {
+      background: rgba(255,255,255,0.25);
+      transform: translateY(-1px);
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      opacity: 0.85;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #36b37e;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ─── Main Layout ──────────────────────────────────────────── */
+    .main {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      min-height: calc(100vh - 64px);
+    }
+
+    .content {
+      padding: 24px;
+      overflow-y: auto;
+      max-height: calc(100vh - 64px);
+    }
+
+    /* ─── Counter Cards ────────────────────────────────────────── */
+
+    .overview-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+      align-items: stretch;
+    }
+    .overview-left {
+      flex: 1;
+      min-width: 0;
+    }
+    .overview-right {
+      flex: 1;
+      min-width: 0;
+    }
+    .mode-badges { display:flex;align-items:center;gap:6px; }
+    .mode-badge { padding:5px 9px;border-radius:12px;font-size:10px;font-weight:800;white-space:nowrap; }
+    .mode-badge--public { background:rgba(54,179,126,.22);color:#d7ffe9;border:1px solid rgba(171,245,209,.3); }
+    .mode-badge--dev { background:rgba(255,153,31,.2);color:#fff3d0;border:1px solid rgba(255,218,143,.28); }
+    .overview-column {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .overview-panel {
+      flex: 1;
+      min-width: 0;
+      min-height: 230px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: var(--color-surface);
+      display: flex;
+      flex-direction: column;
+    }
+    .overview-panel .section-header {
+      min-height: 47px;
+      border: 0;
+      border-radius: 0;
+      flex-shrink: 0;
+    }
+    .overview-panel .section-body {
+      flex: 1;
+      min-height: 0;
+      max-height: 360px;
+      overflow: auto;
+      border: 0;
+      border-top: 1px solid var(--color-border);
+      border-radius: 0;
+    }
+    .overview-panel.collapsed {
+      min-height: 47px;
+      height: 47px;
+      flex: 0 0 47px;
+    }
+    .overview-panel--priority .section-body {
+      color: #fff;
+      background: linear-gradient(135deg,#0052CC 0%,#0747A6 100%);
+      border-top-color: rgba(255,255,255,.16);
+    }
+    .overview-column .counter-card {
+      padding: 15px;
+    }
+    .overview-column .counter-card .value {
+      font-size: 28px;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .section-header h4 {
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--color-text-secondary);
+      margin: 0;
+    }
+    .section-header .toggle-icon {
+      font-size: .7rem;
+      opacity: .5;
+      transition: transform .3s;
+    }
+    .section-body {
+      border: 1px solid var(--color-border);
+      border-top: none;
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      padding: 12px;
+      background: var(--color-bg);
+    }
+
+    .counters {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 0;
+    }
+
+    .counter-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .counter-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .counter-card.active {
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
+    }
+
+    .counter-card .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .counter-card .value {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .counter-card .sublabel {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      margin-top: 6px;
+    }
+
+    .counter-card.open .value { color: var(--color-primary); }
+    .counter-card.progress .value { color: var(--color-warning); }
+    .counter-card.overdue .value { color: var(--color-error); }
+    .counter-card.total .value { color: var(--color-text); }
+
+    /* ─── Toolbar / Filters ──────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-family: var(--font-sans);
+    }
+
+    .filter-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      background: var(--color-primary-light);
+      transform: translateY(-1px);
+    }
+
+    .filter-btn.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+    }
+    .export-btn { margin-left:auto;background:#e3fcef;border:1px solid #abf5d1;color:#006644;border-radius:20px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer; }
+    .export-btn:hover { background:#abf5d1; }
+
+    .search-input {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--color-text);
+      width: 240px;
+      outline: none;
+      margin-left: auto;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: var(--font-sans);
+    }
+
+    .search-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+    }
+
+    .search-input::placeholder { color: var(--color-text-muted); }
+
+    /* ─── Table ──────────────────────────────────────────────── */
+    .table-container {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.2s;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      padding: 14px 16px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      text-align: left;
+      background: var(--color-border-light);
+      border-bottom: 1px solid var(--color-border);
+      font-weight: 700;
+    }
+
+    tbody tr {
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      border-left: 3px solid transparent;
+    }
+
+    tbody tr:hover {
+      background: #edf4ff;
+      border-left-color: var(--color-primary);
+    }
+
+    tbody tr.selected {
+      background: var(--color-primary-light);
+      border-left-color: var(--color-primary);
+    }
+
+    tbody td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--color-border-light);
+      vertical-align: middle;
+      color: var(--color-text-secondary);
+    }
+
+    /* ─── Badges ─────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-open, .badge-to-do { background: #e6f0ff; color: #0065ff; }
+    .badge-in-progress { background: #fffae6; color: #b86e00; }
+    .badge-completed { background: #e3fcef; color: #006644; }
+    .badge-overdue { background: #ffebe6; color: #de350b; }
+    .badge-cancelled { background: #f1f5f9; color: #8993a4; }
+
+    .priority-critical { color: #de350b; font-weight: 700; }
+    .priority-high { color: #de350b; font-weight: 600; }
+    .priority-medium { color: #b86e00; font-weight: 500; }
+    .priority-low { color: var(--color-text-muted); }
+
+    /* ─── Modal Overlay ──────────────────────────────────────── */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.visible {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-backdrop.animating {
+      display: flex;
+    }
+
+    .modal-panel {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      width: min(1080px, 94vw);
+      max-width: 94vw;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 32px;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0,0,0,0.05);
+      transform: translateY(20px) scale(0.97);
+      transition: transform 0.25s ease, opacity 0.25s ease;
+      opacity: 0;
+      position: relative;
+    }
+
+    .modal-backdrop.visible .modal-panel {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: var(--color-border-light);
+      border: none;
+      color: var(--color-text-muted);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      transition: background 0.15s, color 0.15s;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      background: var(--color-border);
+      color: var(--color-text);
+    }
+
+    .modal-panel h2 {
+      font-size: 20px;
+      margin-bottom: 24px;
+      padding-right: 48px;
+      color: var(--color-text);
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .detail-section {
+      margin-bottom: 24px;
+    }
+
+    .detail-section h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-border-light);
+      font-size: 13px;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-row .label { color: var(--color-text-muted); font-weight: 500; }
+    .detail-row .value { font-weight: 500; color: var(--color-text); text-align: right; max-width: 60%; }
+
+    .detail-description {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--color-text-secondary);
+      padding: 16px;
+      background: var(--color-border-light);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+    }
+
+    /* ─── Student Signal in Modal ────────────────────────────── */
+    .signal-section {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .signal-section h3 {
+      font-size: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--color-text);
+      font-weight: 600;
+    }
+
+    .signal-input {
+      width: 100%;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 14px;
+      color: var(--color-text);
+      resize: vertical;
+      min-height: 80px;
+      outline: none;
+      font-family: var(--font-sans);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .signal-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+    }
+
+    .signal-btn {
+      margin-top: 10px;
+      background: var(--color-primary);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 10px 20px;
+      font-size: 14px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+      width: 100%;
+      font-family: var(--font-sans);
+    }
+
+    .signal-btn:hover {
+      background: var(--color-primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3);
+    }
+
+    .signal-btn:active {
+      transform: translateY(0);
+    }
+
+    .signal-success {
+      margin-top: 10px;
+      padding: 10px;
+      background: #e3fcef;
+      border: 1px solid #abf5d1;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: #006644;
+      display: none;
+    }
+    .detail-toolbar { display:flex;align-items:center;justify-content:space-between;gap:12px;padding-right:52px;margin-bottom:18px; }
+    .detail-toolbar h2 { margin:0; }
+    .view-toggle { display:flex;gap:3px;background:var(--color-border-light);padding:3px;border-radius:9px; }
+    .view-toggle button { border:0;background:transparent;color:var(--color-text-muted);padding:7px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer; }
+    .view-toggle button.active { background:#fff;color:var(--color-primary);box-shadow:var(--shadow-sm); }
+    .visual-summary { display:none;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px; }
+    .visual-summary.visible { display:grid; }
+    .visual-stat { background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:16px; }
+    .visual-stat span { display:block;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--color-text-muted);margin-bottom:7px;font-weight:700; }
+    .visual-stat strong { font-size:15px;line-height:1.35; }
+
+    .student-feedback-card {
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      background: #f8fafc;
+      border: 1px solid var(--color-border);
+      border-left: 3px solid var(--color-primary);
+      border-radius: var(--radius-sm);
+    }
+
+    .student-feedback-card p {
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--color-text);
+      margin-bottom: 6px;
+    }
+
+    .student-feedback-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+
+    /* ─── Buildings Chart ─────────────────────────────────────── */
+    .buildings-section {
+      margin-top: 24px;
+    }
+
+    .buildings-section h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .buildings-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .building-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .building-bar:last-child { border-bottom: none; }
+
+    .building-bar .name {
+      flex: 1;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--color-text-secondary);
+    }
+
+    .building-bar .bar {
+      width: 120px;
+      height: 6px;
+      background: var(--color-border-light);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .building-bar .bar-fill {
+      height: 100%;
+      background: var(--color-primary);
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+
+    .building-bar .count {
+      font-size: 12px;
+      font-weight: 700;
+      min-width: 24px;
+      text-align: right;
+      color: var(--color-text);
+    }
+
+    /* ─── Loading ─────────────────────────────────────────────── */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      color: var(--color-text-muted);
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--color-border);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+
+    /* ─── Asset Snapshot Section ──────────────────────────────────────── */
+    .asset-snapshot {
+      margin-bottom: 20px;
+    }
+
+    .asset-snapshot-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .asset-snapshot-header h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .asset-snapshot-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+
+    .asset-snapshot-cards {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+
+    .asset-card-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+      padding-top: 4px;
+    }
+    .asset-card-assets {
+      font-size: .65rem;
+      color: var(--color-text-muted);
+    }
+    .asset-card-wos {
+      font-size: .65rem;
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .asset-card {
+      flex: 1 1 160px;
+      min-width: 140px;
+      border-radius: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .asset-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .asset-card:active {
+      transform: translateY(0);
+    }
+
+    .asset-card.pulse-active {
+      animation: assetPulse 0.6s ease;
+    }
+
+    @keyframes assetPulse {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.03); }
+      60% { transform: scale(0.98); }
+      100% { transform: scale(1); }
+    }
+
+    .asset-card-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .asset-card-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      letter-spacing: 0.2px;
+    }
+
+    .asset-card-count {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--color-text);
+      letter-spacing: -0.5px;
+    }
+
+    .asset-card--access { background: #f1f5f9; }
+    .asset-card--access:hover { border-color: #94a3b8; }
+    .asset-card--electrical { background: #fefce8; }
+    .asset-card--electrical:hover { border-color: #facc15; }
+    .asset-card--hvac { background: #eff6ff; }
+    .asset-card--hvac:hover { border-color: #60a5fa; }
+    .asset-card--water { background: #f0fdfa; }
+    .asset-card--water:hover { border-color: #2dd4bf; }
+    .asset-card--fire { background: #fef2f2; }
+    .asset-card--fire:hover { border-color: #f87171; }
+
+    .staff-preview { margin:20px 0 18px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden; }
+    .staff-preview-head { display:flex;justify-content:space-between;align-items:center;gap:12px;padding:17px 20px;border-bottom:1px solid var(--color-border);background:linear-gradient(135deg,#f8fafc,#eef4ff); }
+    .staff-preview-head h3 { font-size:.98rem;display:flex;align-items:center;gap:8px; }
+    .staff-preview-head p { color:var(--color-text-muted);font-size:.7rem;margin-top:4px; }
+    .staff-preview-badge { padding:5px 9px;border-radius:9px;background:#fffae6;color:#92400e;font-size:10px;font-weight:800;white-space:nowrap; }
+    .staff-preview-grid { display:grid;grid-template-columns:1.1fr .9fr; }
+    .staff-preview-section { padding:18px 20px;min-width:0; }
+    .staff-preview-section + .staff-preview-section { border-left:1px solid var(--color-border); }
+    .staff-preview-section h4 { font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;color:var(--color-text-muted);margin-bottom:12px; }
+    .escalation-preview { padding:11px 13px;border-radius:9px;border:1px solid #ffbdad;background:#ffebe6;color:#bf2600;font-size:.7rem;line-height:1.5;margin-bottom:12px; }
+    .workflow-preview { list-style:none;display:grid;gap:7px; }
+    .workflow-preview li { display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid var(--color-border);border-radius:8px;font-size:.72rem;background:#fff; }
+    .workflow-preview li span:first-child { flex:1; }
+    .workflow-priority { padding:3px 7px;border-radius:6px;font-size:9px;font-weight:800; }
+    .workflow-priority.immediate { background:#ffebe6;color:#bf2600; }
+    .workflow-priority.high { background:#fffae6;color:#974f0c; }
+    .workflow-priority.standard { background:#e3fcef;color:#006644; }
+    .record-preview { display:grid;gap:8px; }
+    .record-preview-item { display:flex;align-items:center;gap:9px;padding:10px;border-bottom:1px solid var(--color-border-light);font-size:.72rem; }
+    .record-preview-item i { color:var(--color-success); }
+    .record-preview-item small { display:block;color:var(--color-text-muted);margin-top:2px; }
+    .preview-action { width:100%;margin-top:13px;border:1px dashed #97a0af;border-radius:8px;background:#f4f5f7;color:#5e6c84;padding:10px;font-size:.7rem;font-weight:700;cursor:not-allowed; }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .overview-row { grid-template-columns: 1fr; }
+      .staff-preview-grid { grid-template-columns:1fr; }
+      .staff-preview-section + .staff-preview-section { border-left:0;border-top:1px solid var(--color-border); }
+      .counters { grid-template-columns: repeat(2, 1fr); }
+      .header { padding: 12px 16px; }
+      .header-left h1 { font-size: 0.95rem; }
+      .content { padding: 16px; }
+      .toolbar { gap: 8px; }
+      .search-input { width: 100%; margin-left: 0; margin-top: 8px; }
+      .signal-link span.link-text { display: none; }
+      .modal-panel { padding: 24px; width: 95vw; }
+      .visual-summary { grid-template-columns:1fr 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .counters { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .counter-card { padding: 16px; }
+      .counter-card .value { font-size: 24px; }
+      .modal-panel { padding: 20px; }
+    }
+  
+    /* Language Toggle */
+    .lang-toggle { background:transparent; border:none; color:rgba(255,255,255,.6); font-size:11px; font-weight:600; padding:4px 8px; border-radius:12px; cursor:pointer; transition:all .2s; }
+    .lang-toggle.active { background:rgba(255,255,255,.25); color:#fff; }
+    .lang-toggle:hover { color:#fff; }
+
+    /* Signal Toast */
+    .signal-toast { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.6); z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; opacity:0; transition:opacity .3s ease; pointer-events:none; }
+    .signal-toast.show { opacity:1; pointer-events:auto; }
+    .signal-toast-card { background:#fff; border-radius:20px; padding:40px 50px; text-align:center; transform:scale(.7); transition:transform .4s cubic-bezier(.34,1.56,.64,1); box-shadow:0 20px 60px rgba(0,0,0,.3); max-width:420px; }
+    .signal-toast.show .signal-toast-card { transform:scale(1); }
+    .signal-toast-icon { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#36b37e,#00875a); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; animation:popIn .5s cubic-bezier(.34,1.56,.64,1) .2s both; }
+    .signal-toast-icon i { font-size:32px; color:#fff; }
+    @keyframes popIn { 0%{transform:scale(0) rotate(-20deg)} 100%{transform:scale(1) rotate(0)} }
+    .signal-toast-title { font-size:1.2rem; font-weight:800; color:#1a2332; margin-bottom:6px; }
+    .signal-toast-sub { font-size:.85rem; color:#44546f; line-height:1.5; }
+    .signal-toast-wo { display:inline-block; margin-top:10px; background:#eff6ff; color:#0052CC; padding:4px 12px; border-radius:8px; font-size:.78rem; font-weight:600; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <span class="logo">CA</span>
+      <h1>345 E 15th St · Building Dashboard</h1>
+    </div>
+    <div class="header-right">
+      <a href="integrated-portal.html?view=student" target="_top" class="signal-link">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span class="link-text">Report & Verify</span>
+      </a>
+      <div class="mode-badges">
+        <span class="mode-badge mode-badge--public"><i class="fa-solid fa-eye"></i> Public Dashboard</span>
+        <span class="mode-badge mode-badge--dev"><i class="fa-solid fa-screwdriver-wrench"></i> Staff Action Mode · In Development</span>
+      </div>
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span id="connectionStatus">Connecting...</span>
+      </div>
+    </div>
+  </div>
+  <div id="google_translate_element" style="position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none"></div>
+
+  <!-- Main Layout -->
+  <div class="main" id="mainLayout">
+    <!-- Content Area -->
+    <div class="content">
+      <!-- Counter Cards -->
+      <div class="overview-row">
+      <!-- Left: Status Overview -->
+      <div class="overview-left overview-column">
+      <div class="overview-panel">
+        <div class="section-header" onclick="toggleSection('countersContent', this)">
+          <h4><i class="fa-solid fa-chart-simple" style="margin-right:6px;"></i> Status Overview</h4>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-body" id="countersContent">
+        <div class="counters">
+        <div class="counter-card open" data-filter="open" onclick="filterByStatus('open')">
+          <div class="label"><i class="fa-solid fa-circle-dot" style="margin-right:4px;"></i> <span data-i18n="open">Open</span></div>
+          <div class="value" id="countOpen">—</div>
+          <div class="sublabel" data-i18n="sub_awaiting">Awaiting action</div>
+        </div>
+        <div class="counter-card progress" data-filter="in_progress" onclick="filterByStatus('in_progress')">
+          <div class="label"><i class="fa-solid fa-spinner" style="margin-right:4px;"></i> <span data-i18n="in_progress">In Progress</span></div>
+          <div class="value" id="countProgress">—</div>
+          <div class="sublabel" data-i18n="sub_working">Being worked on</div>
+        </div>
+        <div class="counter-card overdue" data-filter="overdue" onclick="filterByStatus('overdue')">
+          <div class="label"><i class="fa-solid fa-clock" style="margin-right:4px;"></i> <span data-i18n="overdue">Overdue</span></div>
+          <div class="value" id="countOverdue">—</div>
+          <div class="sublabel" data-i18n="sub_pastdue">Past due date</div>
+        </div>
+        <div class="counter-card total" data-filter="all" onclick="filterByStatus('all')">
+          <div class="label"><i class="fa-solid fa-list" style="margin-right:4px;"></i> <span data-i18n="total">Total</span></div>
+          <div class="value" id="countTotal">—</div>
+          <div class="sublabel" data-i18n="sub_all">All work orders</div>
+        </div>
+      </div>
+      </div>
+      </div>
+      </div>
+
+      <!-- Middle: Student Reports -->
+      <div class="overview-column">
+      <div class="overview-panel">
+        <div class="section-header" onclick="toggleSection('recentReportsContent', this)">
+          <h4><i class="fa-solid fa-comments" style="margin-right:6px;color:var(--color-primary);"></i> Recent Student Reports <span style="margin-left:5px;background:#deebff;color:#0052cc;border-radius:10px;padding:2px 7px;font-size:10px;">3 new</span></h4>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-body" id="recentReportsContent" style="padding:0 14px 10px;">
+          <div class="student-feedback-card">
+            <p>"The third-floor restroom sink is still leaking every morning."</p>
+            <div class="student-feedback-meta"><span>Matched: Plumbing Repair</span><span>12 min ago</span></div>
+          </div>
+          <div class="student-feedback-card">
+            <p>"The elevator stopped between floors again after lunch."</p>
+            <div class="student-feedback-meta"><span>Review needed</span><span>1 hr ago</span></div>
+          </div>
+          <div class="student-feedback-card" style="margin-bottom:0;">
+            <p>"Exit sign near the gym is dark."</p>
+            <div class="student-feedback-meta"><span>Matched: Emergency Lighting</span><span>Yesterday</span></div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <!-- Right: Priority Action Board -->
+      <div class="overview-right overview-column">
+      <div id="actionBoard" class="overview-panel overview-panel--priority">
+        <div class="section-header" onclick="toggleSection('actionBoardContent', this)">
+          <h4><i class="fa-solid fa-bullseye" style="margin-right:6px;color:var(--color-primary);"></i> <span data-i18n="action_board">Priority Action Board</span></h4>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-body" id="actionBoardContent">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <span id="actionBoardBrief" style="font-size:.72rem;opacity:.85;"></span>
+          <span style="font-size:.65rem;background:rgba(255,255,255,.15);padding:3px 8px;border-radius:12px;" id="actionBoardDate"></span>
+        </div>
+        <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:12px 16px;margin-bottom:14px;border-left:3px solid #7dd3fc;">
+          <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;color:#7dd3fc;font-weight:700;margin-bottom:4px;" data-i18n="decision_summary">DECISION SUMMARY</div>
+          <div style="font-size:.88rem;line-height:1.5;" id="actionBoardSummary">Analyzing work orders...</div>
+        </div>
+        <ol style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;" id="actionBoardList"></ol>
+        </div>
+      </div>
+      </div>
+      </div>
+
+      <section class="staff-preview">
+        <div class="staff-preview-head">
+          <div>
+            <h3><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--color-primary)"></i> Staff Action Preview</h3>
+            <p>How student evidence can become an approved workflow and structured CriticalAsset record.</p>
+          </div>
+          <span class="staff-preview-badge"><i class="fa-solid fa-screwdriver-wrench"></i> In Development · Read-only</span>
+        </div>
+        <div class="staff-preview-grid">
+          <div class="staff-preview-section">
+            <h4>Recommended Workflow</h4>
+            <div class="escalation-preview"><strong><i class="fa-solid fa-triangle-exclamation"></i> Escalation trigger:</strong> Recurring issue reported after an earlier repair. Supervisor review recommended.</div>
+            <ol class="workflow-preview">
+              <li><span>Inspect reported location and confirm active condition</span><span class="workflow-priority immediate">IMMEDIATE</span></li>
+              <li><span>Review matched work order and linked student evidence</span><span class="workflow-priority high">HIGH</span></li>
+              <li><span>Check DOB history and recurring-issue pattern</span><span class="workflow-priority high">HIGH</span></li>
+              <li><span>Request student verification after repair</span><span class="workflow-priority standard">FOLLOW-UP</span></li>
+            </ol>
+          </div>
+          <div class="staff-preview-section">
+            <h4>Proposed Record Updates</h4>
+            <div class="record-preview">
+              <div class="record-preview-item"><i class="fa-solid fa-circle-check"></i><div>Attach student observation<small>Add first-hand evidence to matched work order</small></div></div>
+              <div class="record-preview-item"><i class="fa-solid fa-circle-check"></i><div>Link precise room / location<small>Fill missing operational context</small></div></div>
+              <div class="record-preview-item"><i class="fa-solid fa-circle-check"></i><div>Recommend priority review<small>Flag recurrence and reported impact</small></div></div>
+              <div class="record-preview-item"><i class="fa-solid fa-circle-check"></i><div>Schedule closure verification<small>Ask reporter to confirm the outcome</small></div></div>
+            </div>
+            <button class="preview-action" disabled><i class="fa-solid fa-lock"></i> Review & Record Actions · Staff Action Mode In Development</button>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- Work Order Map -->
+      <div style="position:relative;margin-bottom:16px;">
+        <div id="woMap" style="height:200px;border-radius:12px;border:1px solid var(--color-border);"></div>
+        <div id="mapToggleContainer" style="position:absolute;top:10px;right:50px;z-index:1000;display:flex;gap:4px;"></div>
+      </div>
+
+      <!-- Asset Snapshot Section -->
+      <div class="asset-snapshot" id="assetSnapshot">
+        <div class="asset-snapshot-header">
+          <h3>📊 Asset Snapshot — 345 E 15th Street</h3>
+          <span class="asset-snapshot-badge"><i class="fa-solid fa-cubes" style="font-size:10px;"></i> 100 assets</span>
+        </div>
+        <div class="asset-snapshot-cards">
+          <div class="asset-card asset-card--access" onclick="filterByAssetCategory('Access &amp; Envelope', this)" title="Access & Envelope — 6 assets">
+            <span class="asset-card-icon"><i class="fa-solid fa-door-open"></i></span>
+            <span class="asset-card-name">Access & Envelope</span>
+            <span class="asset-card-count">6</span>
+            <div class="asset-card-bottom"><span class="asset-card-assets">6 assets</span><span class="asset-card-wos" id="woCount-access"></span></div>
+          </div>
+          <div class="asset-card asset-card--electrical" onclick="filterByAssetCategory('Electrical &amp; IT', this)" title="Electrical & IT — 14 assets">
+            <span class="asset-card-icon"><i class="fa-solid fa-bolt"></i></span>
+            <span class="asset-card-name">Electrical & IT</span>
+            <span class="asset-card-count">14</span>
+            <div class="asset-card-bottom"><span class="asset-card-assets">14 assets</span><span class="asset-card-wos" id="woCount-electrical"></span></div>
+          </div>
+          <div class="asset-card asset-card--hvac" onclick="filterByAssetCategory('HVAC &amp; Thermal', this)" title="HVAC & Thermal — 29 assets">
+            <span class="asset-card-icon"><i class="fa-solid fa-temperature-half"></i></span>
+            <span class="asset-card-name">HVAC & Thermal</span>
+            <span class="asset-card-count">29</span>
+            <div class="asset-card-bottom"><span class="asset-card-assets">29 assets</span><span class="asset-card-wos" id="woCount-hvac"></span></div>
+          </div>
+          <div class="asset-card asset-card--water" onclick="filterByAssetCategory('Water &amp; Plumbing', this)" title="Water & Plumbing — 29 assets">
+            <span class="asset-card-icon"><i class="fa-solid fa-droplet"></i></span>
+            <span class="asset-card-name">Water & Plumbing</span>
+            <span class="asset-card-count">29</span>
+            <div class="asset-card-bottom"><span class="asset-card-assets">29 assets</span><span class="asset-card-wos" id="woCount-water"></span></div>
+          </div>
+          <div class="asset-card asset-card--fire" onclick="filterByAssetCategory('Fire &amp; Life Safety', this)" title="Fire & Life Safety — 22 assets">
+            <span class="asset-card-icon"><i class="fa-solid fa-fire-extinguisher"></i></span>
+            <span class="asset-card-name">Fire & Life Safety</span>
+            <span class="asset-card-count">22</span>
+            <div class="asset-card-bottom"><span class="asset-card-assets">22 assets</span><span class="asset-card-wos" id="woCount-fire"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="toolbar" id="workOrderSection">
+        <button class="filter-btn active" data-priority="all" onclick="showAllOrders()">All Priorities</button>
+        <button class="filter-btn" data-priority="high" onclick="filterByPriority('high')"><i class="fa-solid fa-circle" style="color:#de350b;font-size:8px;margin-right:4px;"></i> High</button>
+        <button class="filter-btn" data-priority="medium" onclick="filterByPriority('medium')"><i class="fa-solid fa-circle" style="color:#ff991f;font-size:8px;margin-right:4px;"></i> Medium</button>
+        <button class="filter-btn" data-priority="low" onclick="filterByPriority('low')"><i class="fa-solid fa-circle" style="color:#36b37e;font-size:8px;margin-right:4px;"></i> Low</button>
+        <button class="export-btn" onclick="exportWorkOrdersExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+        <input type="text" class="search-input" style="margin-left:0" placeholder="Search work orders..." oninput="searchWorkOrders(this.value)">
+      </div>
+
+      <!-- Table -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="th_title">Title</th>
+              <th data-i18n="th_status">Status</th>
+              <th data-i18n="th_priority">Priority</th>
+              <th data-i18n="th_asset">Asset</th>
+              <th data-i18n="th_location">Location</th>
+              <th data-i18n="th_due">Due Date</th>
+            </tr>
+          </thead>
+          <tbody id="workOrderTable">
+            <tr>
+              <td colspan="6">
+                <div class="loading">
+                  <div class="spinner"></div>
+                  <span>Loading work orders...</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Top Buildings by Open Work Orders -->
+      <div class="buildings-section">
+        <h3>Top Buildings by Open Work Orders</h3>
+        <div class="buildings-card" id="buildingsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div class="modal-backdrop" id="modalBackdrop" onclick="handleBackdropClick(event)">
+    <div class="modal-panel" id="modalPanel">
+      <button class="modal-close" onclick="closeDetail()"><i class="fa-solid fa-xmark"></i></button>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <script>
+    function googleTranslateElementInit(){
+      new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'en,es,zh-CN',autoDisplay:false},'google_translate_element');
+      setTimeout(()=>{ if(parent!==window && parent.syncFrameLanguage) parent.syncFrameLanguage(frameElement); },800);
+    }
+    // ─── State ───────────────────────────────────────────────────
+    let allWorkOrders = [];
+    let filteredWorkOrders = [];
+    let currentFilter = { status: 'all', priority: 'all', search: '' };
+    let selectedWorkOrder = null;
+
+    // ─── Work order content translations ─────────────────────────────
+    const woTranslations = {
+      titles: {
+        es: {'Annual Steam System Inspection':'Inspección Anual del Sistema de Vapor','Electrical Distribution Panel Preventive Maintenance':'Mantenimiento Preventivo del Panel Eléctrico','Emergency Exit Sign & Lighting Test':'Prueba de Señalización y Iluminación de Emergencia'},
+        zh: {'Annual Steam System Inspection':'年度蒸汽系统检查','Electrical Distribution Panel Preventive Maintenance':'配电盘预防性维护','Emergency Exit Sign & Lighting Test':'紧急出口标志和照明测试'}
+      },
+      categories: {
+        es: {'HVAC / Steam':'HVAC / Vapor','Electrical':'Eléctrico','Fire & Life Safety':'Seguridad contra Incendios','General':'General','Plumbing':'Plomería','Access':'Acceso'},
+        zh: {'HVAC / Steam':'暖通/蒸汽','Electrical':'电气','Fire & Life Safety':'消防安全','General':'通用','Plumbing':'给排水','Access':'门禁'}
+      },
+      locations: {
+        es: {'345 East 15th Street':'345 East 15th Street'},
+        zh: {'345 East 15th Street':'345 E 15th St (东15街345号)'}
+      }
+    };
+    function translateWO(text, type) {
+      if (currentLang === 'en' || !text) return text;
+      const map = woTranslations[type]?.[currentLang];
+      if (!map) return text;
+      if (map[text]) return map[text];
+      for (const [en, tr] of Object.entries(map)) { if (text.includes(en)) return tr; }
+      return text;
+    }
+
+    // ─── Map Style Toggle ────────────────────────────────────────────
+    function switchMapStyle(style) {
+      if (!woMap || !woMapTileLayer) return;
+      woMap.removeLayer(woMapTileLayer);
+      if (style === 'satellite') {
+        woMapTileLayer = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}', {
+          attribution: '© USGS', maxZoom: 20
+        }).addTo(woMap);
+      } else {
+        woMapTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          attribution: '© OpenStreetMap © CARTO'
+        }).addTo(woMap);
+      }
+      document.querySelectorAll('.map-style-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.map-style-btn[data-style="${style}"]`)?.classList.add('active');
+    }
+
+
+    // ─── Section Toggle (counters) ───────────────────────────────────
+    function toggleSection(id, headerEl) {
+      const body = document.getElementById(id);
+      const icon = headerEl.querySelector('.toggle-icon');
+      const panel = headerEl.closest('.overview-panel');
+      if (body.style.display === 'none') {
+        body.style.display = '';
+        icon.style.transform = 'rotate(0)';
+        panel?.classList.remove('collapsed');
+      } else {
+        body.style.display = 'none';
+        icon.style.transform = 'rotate(-90deg)';
+        panel?.classList.add('collapsed');
+      }
+    }
+
+
+    // ─── API Base URL ────────────────────────────────────────────
+    const API_BASE = window.location.origin;
+
+    // ─── Initialize ──────────────────────────────────────────────
+    async function init() {
+      try {
+        const health = await fetch(`${API_BASE}/api/health`).then(r => r.json());
+
+        if (!health.hasCredentials) {
+          document.getElementById('connectionStatus').textContent = 'No credentials';
+          loadDemoData();
+          return;
+        }
+
+        document.getElementById('connectionStatus').textContent = 'Connected';
+
+        const data = await fetch(`${API_BASE}/api/workorders?limit=100`).then(r => r.json());
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        allWorkOrders = data.nodes || [];
+        applyFilters();
+      } catch (error) {
+        console.error('Init error:', error);
+        document.getElementById('connectionStatus').textContent = 'Demo Mode';
+        loadDemoData();
+      }
+    }
+
+    // ─── Demo Data ───────────────────────────────────────────────
+    function loadDemoData() {
+      allWorkOrders = [
+        { id: 'ee4cacef-08e3-58e6-a94f-e0ff32c5e6f5', title: 'Annual Steam System Inspection', description: 'Perform comprehensive annual inspection of the steam pressure reducing valve station and safety relief valves.', severity: 'high', executionPriority: 'high', workOrderStage: { name: 'To Do' }, workOrderServiceCategory: 'hvac', createdAt: '2026-05-30T09:00:00Z', dueDate: '2026-06-10T17:00:00Z', asset: { id: '602454ae-2f73-5e90-a688-87945cc0b6e8', name: 'Steam Pressure Reducing Valve Station', category: 'HVAC / Steam', status: 'active' }, location: { id: '6bbaf32c-707e-5bae-a59e-447e8aff1efc', locationName: '345 East 15th Street', address: '345 E 15th St, New York, NY' }, assignee: { id: 'U-01', name: 'Assigned Tech' } },
+        { id: '29c750cd-7929-524a-ab7c-b3e1e965b0fd', title: 'Electrical Distribution Panel Preventive Maintenance', description: 'Conduct thermal imaging and tighten connections on main switchboard and distribution panels.', severity: 'medium', executionPriority: 'medium', workOrderStage: { name: 'To Do' }, workOrderServiceCategory: 'electrical', createdAt: '2026-05-30T09:00:00Z', dueDate: '2026-06-07T17:00:00Z', asset: { id: '1ac4e575-2686-503e-a9b7-20df593ae553', name: 'Main Switchboard', category: 'Electrical', status: 'active' }, location: { id: '6bbaf32c-707e-5bae-a59e-447e8aff1efc', locationName: '345 East 15th Street', address: '345 E 15th St, New York, NY' }, assignee: { id: 'U-02', name: 'Assigned Tech' } },
+        { id: 'c5338071-972b-5dc2-a676-cefade0b4838', title: 'Emergency Exit Sign & Lighting Test', description: 'Perform mandatory emergency exit signage and battery unit discharge test.', severity: 'critical', executionPriority: 'critical', workOrderStage: { name: 'To Do' }, workOrderServiceCategory: 'fire_and_life_safety', createdAt: '2026-05-30T09:00:00Z', dueDate: '2026-06-15T17:00:00Z', asset: { id: 'b082f439-6d72-5e2f-a3ff-371db1aac811', name: 'Exit Sign', category: 'Fire & Life Safety', status: 'active' }, location: { id: '6bbaf32c-707e-5bae-a59e-447e8aff1efc', locationName: '345 East 15th Street', address: '345 E 15th St, New York, NY' }, assignee: { id: 'U-03', name: 'Assigned Tech' } },
+      ];
+      applyFilters();
+    }
+
+    // ─── Filtering ───────────────────────────────────────────────
+    function applyFilters() {
+      const now = new Date();
+
+      filteredWorkOrders = allWorkOrders.filter(wo => {
+        if (currentFilter.status !== 'all') {
+          const stage = wo.workOrderStage?.name?.toLowerCase().replace(/\s/g, '_') || 'open';
+          if (currentFilter.status === 'overdue') {
+            if (!wo.dueDate || new Date(wo.dueDate) >= now) return false;
+            if (stage === 'completed' || stage === 'cancelled') return false;
+          } else if (currentFilter.status === 'open' && stage !== 'open' && stage !== 'to_do' && stage !== 'to do') {
+            return false;
+          } else if (currentFilter.status === 'in_progress' && stage !== 'in_progress' && stage !== 'in progress') {
+            return false;
+          }
+        }
+
+        if (currentFilter.priority !== 'all') {
+          const priority = (wo.severity || wo.executionPriority || '').toLowerCase();
+          if (currentFilter.priority === 'high' && priority !== 'high' && priority !== 'critical') return false;
+          if (currentFilter.priority === 'medium' && priority !== 'medium') return false;
+          if (currentFilter.priority === 'low' && priority !== 'low') return false;
+        }
+
+        if (currentFilter.search) {
+          const search = currentFilter.search.toLowerCase();
+          const searchable = [
+            wo.title, wo.description, wo.asset?.name, wo.asset?.category,
+            wo.location?.locationName, wo.assignee?.name
+          ].filter(Boolean).join(' ').toLowerCase();
+          if (!searchable.includes(search)) return false;
+        }
+
+        return true;
+      });
+
+      renderCounters();
+      renderActionBoard();
+      initMap();
+      renderTable();
+      renderBuildings();
+      updateAssetWOCounts();
+    }
+
+    function filterByStatus(status) {
+      currentFilter.status = status;
+      document.querySelectorAll('.counter-card').forEach(c => c.classList.remove('active'));
+      document.querySelector(`.counter-card[data-filter="${status}"]`)?.classList.add('active');
+      applyFilters();
+      // Scroll to the Action Board
+      document.getElementById('workOrderSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function filterByPriority(priority) {
+      currentFilter.priority = priority;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.filter-btn[data-priority="${priority}"]`)?.classList.add('active');
+      applyFilters();
+    }
+
+    function searchWorkOrders(query) {
+      currentFilter.search = query;
+      applyFilters();
+    }
+
+    function setDetailView(mode, button) {
+      document.querySelectorAll('.view-toggle button').forEach(item => item.classList.toggle('active', item === button));
+      document.getElementById('visualSummary')?.classList.toggle('visible', mode === 'visual');
+      document.querySelectorAll('#detailContent > .detail-section, #detailContent > .signal-section').forEach(section => {
+        section.style.display = mode === 'visual' ? 'none' : '';
+      });
+    }
+
+    function exportWorkOrdersExcel() {
+      const rows = allWorkOrders.map(wo => ({
+        ID: wo.id || '',
+        Title: wo.title || '',
+        Description: wo.description || '',
+        Status: wo.workOrderStage?.name || '',
+        Priority: wo.severity || wo.executionPriority || '',
+        Created: wo.createdAt || '',
+        Due: wo.dueDate || '',
+        Assignee: wo.assignee?.name || '',
+        Asset: wo.asset?.name || '',
+        AssetCategory: wo.asset?.category || '',
+        AssetStatus: wo.asset?.status || '',
+        Building: wo.location?.locationName || '',
+        Address: wo.location?.address || '',
+        ServiceCategory: wo.workOrderServiceCategory || ''
+      }));
+      const sheet = XLSX.utils.json_to_sheet(rows);
+      const book = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(book, sheet, 'Work Orders');
+      XLSX.writeFile(book, '345-E-15th-St-work-orders.xlsx');
+    }
+
+    // ─── Render Functions ────────────────────────────────────────
+    function renderCounters() {
+      const now = new Date();
+      const openStatuses = ['open', 'to do', 'to_do'];
+      const open = allWorkOrders.filter(wo => openStatuses.includes(wo.workOrderStage?.name?.toLowerCase())).length;
+      const inProgress = allWorkOrders.filter(wo => ['in progress', 'in_progress'].includes(wo.workOrderStage?.name?.toLowerCase())).length;
+      const overdue = allWorkOrders.filter(wo => {
+        const stage = wo.workOrderStage?.name?.toLowerCase();
+        return wo.dueDate && new Date(wo.dueDate) < now && stage !== 'completed' && stage !== 'cancelled' && stage !== 'done';
+      }).length;
+
+      document.getElementById('countOpen').textContent = open;
+      document.getElementById('countProgress').textContent = inProgress;
+      document.getElementById('countOverdue').textContent = overdue;
+      document.getElementById('countTotal').textContent = allWorkOrders.length;
+    }
+
+
+    function renderActionBoard() {
+      const board = document.getElementById('actionBoard');
+      if (!allWorkOrders.length) {
+        board.style.display = 'block';
+        document.getElementById('actionBoardSummary').textContent = 'Waiting for work-order data to generate priority recommendations.';
+        document.getElementById('actionBoardList').innerHTML = '';
+        return;
+      }
+      board.style.display = 'block';
+      const now = new Date();
+      const locale = currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-US';
+      document.getElementById('actionBoardDate').textContent = now.toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+      
+      const sevOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+      const open = allWorkOrders.filter(wo => !wo.workOrderStage?.name?.toLowerCase().includes('complet'));
+      const sorted = [...open].sort((a, b) => (sevOrder[(a.severity||'').toLowerCase()] ?? 4) - (sevOrder[(b.severity||'').toLowerCase()] ?? 4));
+      const top3 = sorted.slice(0, 3);
+      
+      const critCount = open.filter(wo => (wo.severity||'').toLowerCase() === 'critical').length;
+      const highCount = open.filter(wo => (wo.severity||'').toLowerCase() === 'high').length;
+      
+      const tpl = i18n[currentLang].summary_tpl;
+      let summary = tpl.replace('{c}', critCount).replace('{h}', highCount).replace('{t}', open.length);
+      document.getElementById('actionBoardSummary').textContent = summary;
+      
+      const colors = ['#de350b', '#ff991f', '#36b37e'];
+      document.getElementById('actionBoardList').innerHTML = top3.map((wo, i) => {
+        const sev = (wo.severity || 'medium').toLowerCase();
+        const color = sev === 'critical' ? '#de350b' : sev === 'high' ? '#ff991f' : '#36b37e';
+        return `<li style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,.08);border-radius:8px;border-left:3px solid ${color};">
+          <span style="min-width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:${color};border-radius:50%;font-size:.7rem;font-weight:800;">${i+1}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${translateWO(wo.title,'titles')}</div>
+            <div style="font-size:.68rem;opacity:.7;margin-top:2px;">${translateWO(wo.asset?.category || 'General','categories')} · ${translateWO(wo.location?.locationName || '345 E 15th St','locations')}</div>
+          </div>
+          <span style="font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.15);text-transform:uppercase;">${i18n[currentLang][sev] || sev.toUpperCase()}</span>
+        </li>`;
+      }).join('');
+    }
+
+    function updateAssetWOCounts() {
+      const categoryMap = {
+        'access': 'access|envelope|elevator|door|window|roof',
+        'electrical': 'electrical|switchboard|panel|power',
+        'hvac': 'hvac|steam|thermal|heating|cooling|valve',
+        'water': 'water|plumbing|pipe|drain|pump',
+        'fire': 'fire|safety|exit|extinguisher|alarm|smoke'
+      };
+      Object.keys(categoryMap).forEach(key => {
+        const terms = categoryMap[key].split('|');
+        const count = allWorkOrders.filter(wo => {
+          const haystack = [wo.title, wo.description, wo.asset?.name, wo.asset?.category, wo.workOrderServiceCategory].filter(Boolean).join(' ').toLowerCase();
+          return terms.some(t => haystack.includes(t));
+        }).length;
+        const el = document.getElementById('woCount-' + key);
+        if (el) el.textContent = count > 0 ? `${count} WO` : '';
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('workOrderTable');
+
+      if (filteredWorkOrders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--color-text-muted);">No work orders match the current filters.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filteredWorkOrders.map(wo => {
+        const status = wo.workOrderStage?.name || 'Unknown';
+        const statusClass = status.toLowerCase().replace(/\s/g, '-');
+        const priority = wo.severity || wo.executionPriority || 'Unknown';
+        const priorityClass = priority.toLowerCase();
+        const isOverdue = wo.dueDate && new Date(wo.dueDate) < new Date() && statusClass !== 'completed';
+        const dueDisplay = wo.dueDate ? new Date(wo.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '\u2014';
+        const dobCounts = {'hvac':3,'steam':3,'electrical':1,'fire':2,'fire_and_life_safety':2,'plumbing':2};
+        const cat = (wo.asset?.category || wo.workOrderServiceCategory || '').toLowerCase().replace(/[\s\/&]+/g,'_');
+        const dobCount = dobCounts[cat] || dobCounts[Object.keys(dobCounts).find(k => cat.includes(k))] || 1;
+        const catColors = {'hvac':'#0052CC','steam':'#0052CC','electrical':'#ff991f','fire':'#de350b','fire_and_life_safety':'#de350b','plumbing':'#14b8a6','structural':'#8993a4'};
+        const catColor = catColors[cat] || catColors[Object.keys(catColors).find(k => cat.includes(k))] || '#8993a4';
+        const catLabel = wo.asset?.category || 'General';
+
+        return `
+          <tr onclick="showDetail('${wo.id}')" class="${selectedWorkOrder?.id === wo.id ? 'selected' : ''}">
+            <td style="max-width: 280px;">
+              <div style="font-weight: 600; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${translateWO(wo.title,'titles')}</div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+                <span style="font-size:10px;padding:1px 6px;border-radius:3px;background:${catColor}15;color:${catColor};font-weight:600;">${catLabel}</span>
+                <span style="font-size:10px;padding:1px 6px;border-radius:3px;background:#ff991f20;color:#92400e;font-weight:600;">🏛️ ${dobCount} DOB</span>
+                <span style="font-size:10px;color:var(--color-text-muted);font-family:monospace;">${wo.id.slice(0, 8)}</span>
+              </div>
+            </td>
+            <td><span class="badge badge-${isOverdue ? 'overdue' : statusClass}">${isOverdue ? 'Overdue' : status}</span></td>
+            <td><span class="priority-${priorityClass}">${priority}</span></td>
+            <td style="font-size: 13px;">${wo.asset?.name || '\u2014'}</td>
+            <td style="font-size: 13px;">${wo.location?.locationName || '\u2014'}</td>
+            <td style="font-size: 13px; ${isOverdue ? 'color: var(--color-error); font-weight: 600;' : ''}">${dueDisplay}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderBuildings() {
+      const buildingCounts = {};
+      allWorkOrders.forEach(wo => {
+        if (wo.location?.locationName) {
+          const stage = wo.workOrderStage?.name?.toLowerCase();
+          if (stage === 'open' || stage === 'to do' || stage === 'in progress') {
+            buildingCounts[wo.location.locationName] = (buildingCounts[wo.location.locationName] || 0) + 1;
+          }
+        }
+      });
+
+      const sorted = Object.entries(buildingCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const max = sorted[0]?.[1] || 1;
+
+      const container = document.getElementById('buildingsList');
+      if (sorted.length === 0) {
+        container.innerHTML = '<div style="padding:16px; text-align:center; color:var(--color-text-muted); font-size:13px;">No open work orders by building</div>';
+        return;
+      }
+      container.innerHTML = sorted.map(([name, count]) => `
+        <div class="building-bar">
+          <span class="name">${name}</span>
+          <div class="bar"><div class="bar-fill" style="width: ${(count / max) * 100}%"></div></div>
+          <span class="count">${count}</span>
+        </div>
+      `).join('');
+    }
+
+    // ─── Detail Modal ────────────────────────────────────────────
+    function showDetail(id) {
+      selectedWorkOrder = allWorkOrders.find(wo => wo.id === id);
+      if (!selectedWorkOrder) return;
+
+      const wo = selectedWorkOrder;
+      const backdrop = document.getElementById('modalBackdrop');
+
+      const isOverdue = wo.dueDate && new Date(wo.dueDate) < new Date() &&
+                        wo.workOrderStage?.name?.toLowerCase() !== 'completed';
+
+      document.getElementById('detailContent').innerHTML = `
+        <div class="detail-toolbar">
+          <h2>${translateWO(wo.title,'titles')}</h2>
+          <div class="view-toggle">
+            <button class="active" onclick="setDetailView('full',this)">Full Details</button>
+            <button onclick="setDetailView('visual',this)">Visual Summary</button>
+          </div>
+        </div>
+        <div class="visual-summary" id="visualSummary">
+          <div class="visual-stat"><span>Status</span><strong>${isOverdue ? 'OVERDUE' : wo.workOrderStage?.name || 'Unknown'}</strong></div>
+          <div class="visual-stat"><span>Priority</span><strong>${wo.severity || wo.executionPriority || 'Unknown'}</strong></div>
+          <div class="visual-stat"><span>Due</span><strong>${wo.dueDate ? new Date(wo.dueDate).toLocaleDateString() : 'No due date'}</strong></div>
+          <div class="visual-stat"><span>Asset</span><strong>${wo.asset?.name || 'No linked asset'}</strong></div>
+          <div class="visual-stat"><span>Location</span><strong>${wo.location?.locationName || 'Unknown'}</strong></div>
+          <div class="visual-stat"><span>Student Reports</span><strong>2 linked observations</strong></div>
+        </div>
+
+        <div class="detail-section">
+          <h3><i class="fa-solid fa-info-circle" style="margin-right:4px;"></i> Details</h3>
+          <div class="detail-row"><span class="label">ID</span><span class="value" style="font-family:monospace;font-size:12px;">${wo.id}</span></div>
+          <div class="detail-row"><span class="label">Status</span><span class="value"><span class="badge badge-${isOverdue ? 'overdue' : wo.workOrderStage?.name?.toLowerCase().replace(/\\s/g, '-')}">${isOverdue ? 'OVERDUE' : wo.workOrderStage?.name}</span></span></div>
+          <div class="detail-row"><span class="label">Priority</span><span class="value priority-${(wo.severity || '').toLowerCase()}">${wo.severity || wo.executionPriority || '\u2014'}</span></div>
+          <div class="detail-row"><span class="label">Created</span><span class="value">${new Date(wo.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></div>
+          <div class="detail-row"><span class="label">Due</span><span class="value" style="${isOverdue ? 'color: var(--color-error); font-weight: 600;' : ''}">${wo.dueDate ? new Date(wo.dueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '\u2014'}</span></div>
+          <div class="detail-row"><span class="label">Assigned To</span><span class="value">${wo.assignee?.name || 'Unassigned'}</span></div>
+        </div>
+
+        <div class="detail-section">
+          <h3><i class="fa-solid fa-align-left" style="margin-right:4px;"></i> Description</h3>
+          <div class="detail-description">${wo.description || 'No description provided.'}</div>
+        </div>
+
+        ${wo.asset ? `
+        <div class="detail-section">
+          <h3><i class="fa-solid fa-cube" style="margin-right:4px;"></i> Linked Asset</h3>
+          <div class="detail-row"><span class="label">Name</span><span class="value">${wo.asset.name}</span></div>
+          <div class="detail-row"><span class="label">Category</span><span class="value">${wo.asset.category || '\u2014'}</span></div>
+          <div class="detail-row"><span class="label">Status</span><span class="value">${wo.asset.status || '\u2014'}</span></div>
+        </div>
+        ` : ''}
+
+        ${wo.location ? `
+        <div class="detail-section">
+          <h3><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i> Location</h3>
+          <div class="detail-row"><span class="label">Building</span><span class="value">${wo.location.locationName}</span></div>
+          <div class="detail-row"><span class="label">Address</span><span class="value">${wo.location.address || '\u2014'}</span></div>
+        </div>
+        ` : ''}
+
+        <div class="signal-section">
+          <h3><i class="fa-solid fa-comments" style="color:var(--color-primary);"></i> Student Feedback</h3>
+          <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 12px;">
+            First-hand observations linked to this work order. Staff can use them to confirm impact and adjust priority.
+          </p>
+          <div class="student-feedback-card">
+            <p>"The issue is still happening every morning before first period."</p>
+            <div class="student-feedback-meta"><span>Submitted through Student Portal</span><span>Today, 8:14 AM</span></div>
+          </div>
+          <div class="student-feedback-card">
+            <p>"This area has been difficult to use for more than a week."</p>
+            <div class="student-feedback-meta"><span>Linked automatically</span><span>Yesterday</span></div>
+          </div>
+          <button class="signal-btn" onclick="window.location.href='student-portal.html'"><i class="fa-solid fa-arrow-up-right-from-square" style="margin-right:6px;"></i> Open Student Portal</button>
+        </div>
+      `;
+
+      // Show modal with animation
+      backdrop.classList.add('animating');
+      requestAnimationFrame(() => {
+        backdrop.classList.add('visible');
+      });
+
+      renderTable();
+    }
+
+    function closeDetail() {
+      const backdrop = document.getElementById('modalBackdrop');
+      backdrop.classList.remove('visible');
+      setTimeout(() => {
+        backdrop.classList.remove('animating');
+      }, 250);
+      selectedWorkOrder = null;
+      renderTable();
+    }
+
+    function handleBackdropClick(event) {
+      if (event.target === document.getElementById('modalBackdrop')) {
+        closeDetail();
+      }
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && document.getElementById('modalBackdrop').classList.contains('visible')) {
+        closeDetail();
+      }
+    });
+
+    // ─── Student Signal ──────────────────────────────────────────
+    let recentSignals = [];
+    async function submitSignal(workOrderId) {
+      const input = document.getElementById('signalInput');
+      const observation = input.value.trim();
+      if (!observation) {
+        input.style.borderColor = 'var(--color-error)';
+        setTimeout(() => input.style.borderColor = '', 2000);
+        return;
+      }
+      try {
+        await fetch(`${API_BASE}/api/signals`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ observation, buildingId: selectedWorkOrder?.location?.id, workOrderId, studentName: 'Hackathon Participant' })
+        });
+      } catch (error) { /* continue anyway for demo */ }
+      // Show animated success toast
+      const wo = allWorkOrders.find(w => w.id === workOrderId);
+      const toast = document.createElement('div');
+      toast.className = 'signal-toast';
+      toast.innerHTML = `<div class="signal-toast-card">
+        <div class="signal-toast-icon"><i class="fa-solid fa-check"></i></div>
+        <div class="signal-toast-title">${i18n[currentLang].signal_success}</div>
+        <div class="signal-toast-sub">Your observation has been recorded and linked to:</div>
+        <div class="signal-toast-wo">${wo?.title?.slice(0,40) || workOrderId.slice(0,8)}</div>
+      </div>`;
+      toast.onclick = () => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); };
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add('show'));
+      setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 4000);
+      // Add to recent signals feed
+      recentSignals.unshift({ text: observation.slice(0,50), wo: wo?.title?.slice(0,30) || workOrderId.slice(0,8), time: new Date().toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'}) });
+      if (recentSignals.length > 3) recentSignals.pop();
+      renderRecentSignals();
+      input.value = '';
+    }
+    function renderRecentSignals() {
+      let feed = document.getElementById('recentSignalsFeed');
+      if (!feed) {
+        feed = document.createElement('div');
+        feed.id = 'recentSignalsFeed';
+        feed.style.cssText = 'margin-top:12px;border-top:1px solid var(--color-border);padding-top:12px;';
+        const signalSection = document.querySelector('.signal-success')?.parentElement;
+        if (signalSection) signalSection.appendChild(feed);
+      }
+      feed.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Recent Signals</div>' +
+        recentSignals.map(s => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--color-border-light);font-size:12px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--color-success);flex-shrink:0;"></span><span style="color:var(--color-text-muted);min-width:50px;">${s.time}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">"${s.text}"</span><span style="color:var(--color-primary);font-size:11px;">→ ${s.wo}</span></div>`).join('');
+    }
+
+
+
+    // ─── Map ─────────────────────────────────────────────────────────
+    let woMap = null;
+    let woMapTileLayer = null;
+    function initMap() {
+      if (woMap || typeof L === 'undefined') return;
+      try {
+        woMap = L.map('woMap').setView([40.7340, -73.9820], 17);
+        woMapTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          attribution: '© OpenStreetMap © CARTO'
+        }).addTo(woMap);
+        // Add toggle buttons inside map
+        var toggleContainer = document.getElementById('mapToggleContainer');
+        if (toggleContainer) {
+          toggleContainer.innerHTML = '<button class="map-style-btn active" data-style="clean" onclick="switchMapStyle(\'clean\')" style="font-size:10px;padding:5px 10px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);border-radius:6px;border:1px solid #e2e8f0;cursor:pointer;font-weight:600;">🗺️ Clean</button><button class="map-style-btn" data-style="satellite" onclick="switchMapStyle(\'satellite\')" style="font-size:10px;padding:5px 10px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);border-radius:6px;border:1px solid #e2e8f0;cursor:pointer;font-weight:600;">🛰️ Satellite</button>';
+        }
+        // Building outline
+        L.rectangle([[40.7336, -73.9826], [40.7344, -73.9814]], {
+          color: '#0052CC', weight: 2, fillOpacity: 0.1, dashArray: '5,5'
+        }).addTo(woMap).bindPopup('<b>345 East 15th St</b><br>BIN 1020419');
+        // Plot work orders as large markers
+        const positions = [[40.7342,-73.9822],[40.7339,-73.9818],[40.7341,-73.9816]];
+        allWorkOrders.forEach((wo, i) => {
+          const sev = (wo.severity||'').toLowerCase();
+          const color = sev==='critical'||sev==='high' ? '#de350b' : sev==='medium' ? '#ff991f' : '#36b37e';
+          const pos = positions[i % positions.length];
+          L.circleMarker([pos[0]+(Math.random()-.5)*.0003, pos[1]+(Math.random()-.5)*.0003], {
+            radius: sev==='critical'?10:sev==='high'?8:6, color:color, fillColor:color, fillOpacity:0.8, weight:2
+          }).addTo(woMap).bindPopup(`<b>${wo.title}</b><br>${wo.severity} | ${wo.asset?.category||'General'}`);
+        });
+        // Plot asset category zones around the building
+        const assetZones = [
+          { name:'Access & Envelope', count:6, color:'#64748b', pos:[40.7336,-73.9826] },
+          { name:'Electrical & IT', count:14, color:'#eab308', pos:[40.7344,-73.9826] },
+          { name:'HVAC & Thermal', count:29, color:'#3b82f6', pos:[40.7344,-73.9814] },
+          { name:'Water & Plumbing', count:29, color:'#14b8a6', pos:[40.7336,-73.9814] },
+          { name:'Fire & Life Safety', count:22, color:'#ef4444', pos:[40.7340,-73.9820] }
+        ];
+        assetZones.forEach(z => {
+          L.circleMarker(z.pos, {
+            radius: 4, color: z.color, fillColor: z.color, fillOpacity: 0.5, weight: 1
+          }).addTo(woMap).bindPopup(`<b>${z.name}</b><br>${z.count} registered assets`);
+        });
+        setTimeout(() => woMap.invalidateSize(), 200);
+      } catch(e) { console.log('Map init failed:', e); }
+    }
+    // ─── Language Toggle ─────────────────────────────────────────────
+    const i18n = {
+      en: { action_board:'Priority Action Board', open:'Open', in_progress:'In Progress', overdue:'Overdue', total:'Total', all_priorities:'All Priorities', search_placeholder:'Search work orders...', student_signal:'Student Signal', decision_summary:'DECISION SUMMARY', submit:'Submit Signal', signal_success:'Signal submitted!',
+        sub_awaiting:'Awaiting action', sub_working:'Being worked on', sub_pastdue:'Past due date', sub_all:'All work orders',
+        header_title:'345 E 15th St · Work Orders', high:'HIGH', medium:'MEDIUM', low:'LOW', critical:'CRITICAL',
+        asset_snapshot:'Asset Snapshot — 345 E 15th Street', assets:'assets', th_title:'Title', th_status:'Status', th_priority:'Priority', th_asset:'Asset', th_location:'Location', th_due:'Due Date', no_match:'No work orders match the current filters.',
+        summary_tpl:'{c} critical issue(s) require immediate attention. {h} high-priority item(s) need action today. {t} total open work orders across the portfolio.',
+        demo_mode:'Demo Mode', challenge2:'Challenge 2', tutorial:'Tutorial'
+      },
+      es: { action_board:'Panel de Acción Prioritaria', open:'Abierto', in_progress:'En Progreso', overdue:'Vencido', total:'Total', all_priorities:'Todas las Prioridades', search_placeholder:'Buscar órdenes de trabajo...', student_signal:'Señal Estudiantil', decision_summary:'RESUMEN DE DECISIÓN', submit:'Enviar Señal', signal_success:'¡Señal enviada!',
+        sub_awaiting:'En espera de acción', sub_working:'En proceso', sub_pastdue:'Fecha vencida', sub_all:'Todas las órdenes',
+        header_title:'345 E 15th St · Órdenes de Trabajo', high:'ALTO', medium:'MEDIO', low:'BAJO', critical:'CRÍTICO',
+        asset_snapshot:'Inventario de Activos — 345 E 15th Street', assets:'activos', th_title:'Título', th_status:'Estado', th_priority:'Prioridad', th_asset:'Activo', th_location:'Ubicación', th_due:'Fecha Límite', no_match:'Ninguna orden coincide con los filtros.',
+        summary_tpl:'{c} problema(s) crítico(s) requieren atención inmediata. {h} elemento(s) de alta prioridad necesitan acción hoy. {t} órdenes de trabajo abiertas en el portafolio.',
+        demo_mode:'Modo Demo', challenge2:'Desafío 2', tutorial:'Guía'
+      },
+      zh: { action_board:'优先行动板', open:'待处理', in_progress:'进行中', overdue:'已逾期', total:'总计', all_priorities:'所有优先级', search_placeholder:'搜索工单...', student_signal:'学生信号', decision_summary:'决策摘要', submit:'提交信号', signal_success:'信号已提交！',
+        sub_awaiting:'等待处理', sub_working:'正在处理', sub_pastdue:'已过期', sub_all:'所有工单',
+        header_title:'345 E 15th St · 工单管理', high:'高', medium:'中', low:'低', critical:'紧急',
+        asset_snapshot:'资产概览 — 345 E 15th Street', assets:'项资产', th_title:'标题', th_status:'状态', th_priority:'优先级', th_asset:'资产', th_location:'位置', th_due:'截止日期', no_match:'没有匹配当前筛选条件的工单',
+        summary_tpl:'{c}个紧急问题需要立即处理。{h}个高优先级项目需要今天行动。共{t}个待处理工单。',
+        demo_mode:'演示模式', challenge2:'挑战2', tutorial:'教程'
+      }
+    };
+    let currentLang = 'en';
+    function setLang(lang) {
+      currentLang = lang;
+      document.querySelectorAll('.lang-toggle').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.lang-toggle[onclick="setLang('${lang}')"]`).classList.add('active');
+      // 1. data-i18n tagged elements
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[lang][key]) el.textContent = i18n[lang][key];
+      });
+      const searchInput = document.querySelector('.search-input');
+      if (searchInput) searchInput.placeholder = i18n[lang].search_placeholder;
+      // 2. Bulk text replacement for ALL remaining untranslated text
+      const phrases = {
+        en: {'Inventario de Activos':'Asset Snapshot','资产概览':'Asset Snapshot','Acceso y Envolvente':'Access & Envelope','门禁与围护':'Access & Envelope','Eléctrico e IT':'Electrical & IT','电气与IT':'Electrical & IT','HVAC y Térmico':'HVAC & Thermal','暖通空调':'HVAC & Thermal','Agua y Plomería':'Water & Plumbing','给排水':'Water & Plumbing','Seguridad contra Incendios':'Fire & Life Safety','消防安全':'Fire & Life Safety','100 activos':'100 assets','100项资产':'100 assets','activos':'assets','项资产':'assets','Limpio':'Clean','清晰':'Clean','Satélite':'Satellite','卫星':'Satellite','Señal Estudiantil':'Student Signal','学生信号':'Student Signal','Desafío 2':'Challenge 2','挑战2':'Challenge 2','Guía':'Tutorial','教程':'Tutorial','Modo Demo':'Demo Mode','演示模式':'Demo Mode','Todas las Prioridades':'All Priorities','所有优先级':'All Priorities','Alto':'High','高':'High','Medio':'Medium','中':'Medium','Bajo':'Low','低':'Low','Enviar Señal':'Submit Signal','提交信号':'Submit Signal','Señales Recientes':'Recent Signals','最近信号':'Recent Signals'},
+        es: {'Asset Snapshot':'Inventario de Activos','Access & Envelope':'Acceso y Envolvente','Electrical & IT':'Eléctrico e IT','HVAC & Thermal':'HVAC y Térmico','Water & Plumbing':'Agua y Plomería','Fire & Life Safety':'Seguridad contra Incendios','100 assets':'100 activos','assets':'activos','Clean':'Limpio','Satellite':'Satélite','Student Signal':'Señal Estudiantil','Challenge 2':'Desafío 2','Tutorial':'Guía','Demo Mode':'Modo Demo','All Priorities':'Todas las Prioridades','High':'Alto','Medium':'Medio','Low':'Bajo','Submit Signal':'Enviar Señal','Recent Signals':'Señales Recientes','资产概览':'Inventario de Activos','门禁与围护':'Acceso y Envolvente','电气与IT':'Eléctrico e IT','暖通空调':'HVAC y Térmico','给排水':'Agua y Plomería','消防安全':'Seguridad contra Incendios','100项资产':'100 activos','项资产':'activos','清晰':'Limpio','卫星':'Satélite','学生信号':'Señal Estudiantil','挑战2':'Desafío 2','教程':'Guía','演示模式':'Modo Demo','所有优先级':'Todas las Prioridades','高':'Alto','中':'Medio','低':'Bajo','提交信号':'Enviar Señal','最近信号':'Señales Recientes'},
+        zh: {'Asset Snapshot':'资产概览','Access & Envelope':'门禁与围护','Electrical & IT':'电气与IT','HVAC & Thermal':'暖通空调','Water & Plumbing':'给排水','Fire & Life Safety':'消防安全','100 assets':'100项资产','assets':'项资产','Clean':'清晰','Satellite':'卫星','Student Signal':'学生信号','Challenge 2':'挑战2','Tutorial':'教程','Demo Mode':'演示模式','All Priorities':'所有优先级','High':'高','Medium':'中','Low':'低','Submit Signal':'提交信号','Recent Signals':'最近信号','Inventario de Activos':'资产概览','Acceso y Envolvente':'门禁与围护','Eléctrico e IT':'电气与IT','HVAC y Térmico':'暖通空调','Agua y Plomería':'给排水','Seguridad contra Incendios':'消防安全','100 activos':'100项资产','activos':'项资产','Limpio':'清晰','Satélite':'卫星','Señal Estudiantil':'学生信号','Desafío 2':'挑战2','Guía':'教程','Modo Demo':'演示模式','Todas las Prioridades':'所有优先级','Alto':'高','Medio':'中','Bajo':'低','Enviar Señal':'提交信号','Señales Recientes':'最近信号'}
+      };
+      if (phrases[lang]) {
+        const map = phrases[lang];
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+        let node;
+        while (node = walker.nextNode()) {
+          const original = node.textContent.trim();
+          if (original && map[original]) {
+            node.textContent = node.textContent.replace(original, map[original]);
+          }
+        }
+        // Also translate button text and link text that might not be pure text nodes
+        document.querySelectorAll('.signal-link .link-text, .filter-btn, .asset-card-name').forEach(el => {
+          const txt = el.textContent.trim();
+          if (map[txt]) el.textContent = map[txt];
+        });
+      }
+      // 3. Re-render dynamic content in new language
+      if (typeof renderActionBoard === 'function') renderActionBoard();
+      if (typeof renderTable === 'function') renderTable();
+      document.querySelector('.header-left h1').textContent = i18n[lang].header_title;
+    }
+    // ─── Boot ────────────────────────────────────────────────────
+    init();
+  
+    // ─── Asset Snapshot Interaction ───────────────────────────────────
+    function filterByAssetCategory(category, el) {
+      // Pulse the clicked card
+      var cards = document.querySelectorAll('.asset-card');
+      cards.forEach(function(c) { c.classList.remove('pulse-active'); c.style.outline=''; });
+      el.classList.add('pulse-active');
+      el.style.outline = '2px solid var(--color-primary)';
+      setTimeout(function() { el.classList.remove('pulse-active'); }, 600);
+
+      // Map display category to search terms that match work order data
+      var categoryMap = {
+        'Access & Envelope': 'access|envelope|elevator|door|window|roof',
+        'Electrical & IT': 'electrical|switchboard|panel|power',
+        'HVAC & Thermal': 'hvac|steam|thermal|heating|cooling|valve',
+        'Water & Plumbing': 'water|plumbing|pipe|drain|pump|valve',
+        'Fire & Life Safety': 'fire|safety|exit|extinguisher|alarm|smoke'
+      };
+      var terms = (categoryMap[category] || category).split('|');
+      // Filter using the existing infrastructure
+      currentFilter.search = '';
+      var searchInput = document.querySelector('.search-input');
+      if (searchInput) searchInput.value = '';
+      // Custom category filter
+      filteredWorkOrders = allWorkOrders.filter(function(wo) {
+        var haystack = [wo.title, wo.description, wo.asset?.name, wo.asset?.category, wo.workOrderServiceCategory].filter(Boolean).join(' ').toLowerCase();
+        return terms.some(function(t) { return haystack.includes(t.toLowerCase()); });
+      });
+      renderTable();
+      renderCounters();
+      // Show a reset notice
+      if (searchInput) searchInput.value = '🔍 ' + category;
+    }
+
+    function showAllOrders() {
+      var searchInput = document.querySelector('.search-input');
+      if (searchInput) searchInput.value = '';
+      currentFilter = { status: 'all', priority: 'all', search: '' };
+      document.querySelectorAll('.asset-card').forEach(function(c) { c.style.outline=''; });
+      applyFilters();
+    }
+
+  </script>
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Portal | CriticalAsset</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+:root{--bg:#f0f4f8;--surface:#fff;--text:#1a2332;--text2:#44546f;--muted:#8993a4;--border:#e2e8f0;--primary:#0052CC;--primary-light:#deebff;--success:#36b37e;--success-light:#e3fcef;--error:#de350b;--warning:#ff991f;--warning-light:#fffae6;--font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--r-sm:8px;--r-md:14px;--r-lg:18px;--shadow:0 4px 16px rgba(0,0,0,.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh;font-size:15px;-webkit-font-smoothing:antialiased}
+
+/* Header */
+.header{background:linear-gradient(135deg,#1e3a5f 0%,#2d5a87 50%,#3a7bd5 100%);color:#fff;padding:18px 24px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(30,58,95,.3)}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.header-title{display:flex;align-items:center;gap:10px}
+.header-title h1{font-size:1.25rem;font-weight:800;letter-spacing:-0.3px}
+.header-title .badge{font-size:.7rem;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:10px;font-weight:500}
+.header-right{display:flex;align-items:center;gap:8px}
+.back-link{color:rgba(255,255,255,.9);text-decoration:none;font-size:.82rem;padding:6px 12px;border-radius:var(--r-sm);transition:background .2s;font-weight:500}
+.back-link:hover{background:rgba(255,255,255,.15)}
+.lang-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:5px 12px;border-radius:12px;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .2s}
+.lang-btn:hover{background:rgba(255,255,255,.3)}
+
+/* Progress Bar */
+.progress-bar{height:4px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden;margin-bottom:10px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7dd3fc,#38bdf8);transition:width .5s cubic-bezier(.4,0,.2,1);border-radius:3px}
+.progress-bar,.step-nav{display:none}
+
+/* Step Nav */
+.step-nav{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px}
+.step-nav .step{padding:7px 14px;border-radius:16px;font-size:.75rem;font-weight:600;white-space:nowrap;cursor:pointer;transition:all .25s;background:rgba(255,255,255,.08);color:rgba(255,255,255,.55)}
+.step-nav .step.active{background:rgba(255,255,255,.28);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.step-nav .step.done{background:rgba(54,179,126,.35);color:#a7f3d0}
+.step-nav .sep{color:rgba(255,255,255,.25);font-size:.65rem;align-self:center}
+
+/* Layout */
+.main{max-width:720px;margin:0 auto;padding:24px 20px}
+
+/* Building Badge */
+.building-badge{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:var(--r-md);padding:14px 18px;margin-bottom:20px;box-shadow:var(--shadow);border-left:4px solid var(--primary)}
+.building-badge .icon{font-size:1.5rem}
+.building-badge .info h3{font-size:.88rem;font-weight:700}
+.building-badge .info p{font-size:.73rem;color:var(--muted)}
+
+/* Step Panels */
+.panel{display:none;animation:fadeIn .35s cubic-bezier(.4,0,.2,1)}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* Cards */
+.card{background:var(--surface);border-radius:var(--r-lg);padding:26px;box-shadow:var(--shadow);margin-bottom:20px;border:1px solid rgba(0,0,0,.04)}
+.card h2{font-size:1.05rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card h3{font-size:.92rem;font-weight:700;margin-bottom:10px}
+
+/* Forms */
+.textarea{width:100%;min-height:120px;padding:16px;border:2px solid var(--border);border-radius:var(--r-md);font-family:var(--font);font-size:.95rem;resize:vertical;transition:border .2s,box-shadow .2s;line-height:1.7}
+.textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(0,82,204,.08)}
+.location-input{width:100%;padding:13px 15px;margin-bottom:12px;border:2px solid var(--border);border-radius:var(--r-md);font-family:var(--font);font-size:.9rem;transition:border .2s,box-shadow .2s}
+.location-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(0,82,204,.08)}
+.optional-link-box{margin-bottom:14px;padding:13px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-md)}
+.optional-link-box label{display:block;font-size:.72rem;font-weight:700;color:var(--text2);margin-bottom:7px}
+.optional-link-box small{display:block;color:var(--muted);font-size:.66rem;margin-top:6px}
+select{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:var(--r-md);font-family:var(--font);font-size:.9rem;appearance:none;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2344546f' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E") no-repeat right 14px center;transition:border .2s}
+select:focus{outline:none;border-color:var(--primary)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;border-radius:var(--r-sm);font-size:.85rem;font-weight:600;border:none;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(0,82,204,.25)}
+.btn-primary:hover{background:#0747A6;box-shadow:0 4px 12px rgba(0,82,204,.3);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-outline{background:var(--surface);border:1.5px solid var(--border);color:var(--text)}
+.btn-outline:hover{background:var(--bg)}
+.btn-voice{background:var(--surface);border:2px solid var(--border);color:var(--text2);border-radius:50%;width:46px;height:46px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .2s}
+.btn-voice:hover{border-color:var(--primary);color:var(--primary)}
+.btn-voice.recording{background:#fef2f2;border-color:var(--error);color:var(--error);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+
+/* Severity Chips */
+.severity-row{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.sev-chip{padding:8px 16px;border-radius:20px;font-size:.8rem;font-weight:600;cursor:pointer;border:2px solid var(--border);background:var(--surface);transition:all .2s}
+.sev-chip:hover{border-color:var(--muted)}
+.sev-chip.selected{color:#fff}
+.sev-chip[data-sev="low"].selected{background:#36b37e;border-color:#36b37e}
+.sev-chip[data-sev="medium"].selected{background:var(--warning);border-color:var(--warning)}
+.sev-chip[data-sev="high"].selected{background:#f97316;border-color:#f97316}
+.sev-chip[data-sev="critical"].selected{background:var(--error);border-color:var(--error)}
+
+/* Follow-up Questions */
+.followups{margin-top:14px;padding:14px 16px;background:#f8fafc;border-radius:var(--r-md);border:1px dashed var(--border);display:none}
+.followups.visible{display:block;animation:fadeIn .3s}
+.followups h4{font-size:.73rem;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px;font-weight:700}
+.followup-q{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:.84rem;color:var(--text2);cursor:pointer;transition:color .2s}
+.followup-q:hover{color:var(--primary)}
+.followup-q i{color:var(--primary);font-size:.72rem}
+
+/* AI Output */
+.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.field-item{background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;border:1px solid rgba(0,0,0,.03)}
+.field-item .label{font-size:.67rem;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px;font-weight:600}
+.field-item .value{font-size:.86rem;font-weight:700}
+.conf{display:inline-block;font-size:.6rem;padding:2px 6px;border-radius:6px;margin-top:3px}
+.conf-verified{background:var(--success-light);color:#006644}
+.conf-likely{background:var(--primary-light);color:var(--primary)}
+.conf-inferred{background:#f3e8ff;color:#7c3aed}
+.conf-missing{background:var(--warning-light);color:#974F0C}
+
+/* Enrichment */
+.enrich-item{display:flex;gap:12px;padding:12px 14px;background:var(--bg);border-radius:var(--r-sm);margin-bottom:10px;font-size:.82rem;border:1px solid rgba(0,0,0,.03)}
+.enrich-date{font-weight:700;color:var(--primary);min-width:75px;font-size:.78rem}
+.badge-active{background:#fef2f2;color:var(--error);padding:2px 8px;border-radius:4px;font-size:.65rem;font-weight:700}
+.badge-resolved{background:var(--success-light);color:#006644;padding:2px 8px;border-radius:4px;font-size:.65rem;font-weight:700}
+
+/* Compliance */
+.compliance-item{display:flex;gap:12px;padding:12px 14px;border-radius:var(--r-sm);margin-bottom:10px;font-size:.82rem;border-left:4px solid var(--warning);background:var(--warning-light)}
+.compliance-item.critical{border-left-color:var(--error);background:#fef2f2}
+.compliance-code{font-weight:700;min-width:110px;color:#92400e;font-size:.78rem}
+.compliance-item.critical .compliance-code{color:var(--error)}
+
+/* Workflow */
+.workflow-list{list-style:none;counter-reset:wf}
+.workflow-list li{counter-increment:wf;display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:.84rem}
+.workflow-list li:last-child{border-bottom:none}
+.workflow-list li::before{content:counter(wf);min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:var(--primary);color:#fff;border-radius:50%;font-size:.7rem;font-weight:700;flex-shrink:0}
+.wf-priority{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:auto;white-space:nowrap}
+.wf-immediate{background:#fef2f2;color:var(--error)}
+.wf-high{background:var(--warning-light);color:#92400e}
+.wf-standard{background:var(--bg);color:var(--muted)}
+
+/* Escalation Banner */
+.escalation{background:linear-gradient(135deg,#fef2f2,#fff1f2);border:2px solid var(--error);border-radius:var(--r-md);padding:14px;margin-bottom:14px;display:none}
+.escalation.visible{display:block;animation:fadeIn .3s}
+.escalation h4{color:var(--error);font-size:.82rem;margin-bottom:4px}
+.escalation p{font-size:.75rem;color:#7f1d1d}
+
+/* Record */
+.record-item{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--border);font-size:.8rem}
+.record-item:last-child{border-bottom:none}
+.record-status{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:10px}
+.status-pending{background:var(--bg);color:var(--muted)}
+.status-done{background:var(--success-light);color:#006644}
+
+/* Closure */
+.closure-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.closure-opt{padding:18px 14px;border:2px solid var(--border);border-radius:var(--r-md);text-align:center;cursor:pointer;transition:all .25s}
+.closure-opt:hover{border-color:var(--primary);background:var(--primary-light);transform:translateY(-2px)}
+.closure-opt.selected{border-color:var(--primary);background:var(--primary-light);box-shadow:0 4px 12px rgba(0,82,204,.15)}
+.closure-opt h4{font-size:.88rem;margin-bottom:6px;font-weight:700}
+.closure-opt p{font-size:.73rem;color:var(--text2);line-height:1.4}
+.closure-response{display:none;margin-top:16px;padding:16px 18px;border-radius:var(--r-md);font-size:.85rem;font-weight:600;line-height:1.6}
+.closure-response.visible{display:block;animation:fadeIn .35s}
+.closure-response.success{background:var(--success-light);color:#006644;border:1px solid rgba(54,179,126,.2)}
+.closure-response.warn{background:var(--warning-light);color:#92400e;border:1px solid rgba(255,153,31,.2)}
+.closure-response.danger{background:#fef2f2;color:var(--error);border:1px solid rgba(222,53,11,.2)}
+
+/* Voice Status */
+.voice-indicator{display:none;align-items:center;gap:6px;padding:6px 10px;background:#fef2f2;border-radius:var(--r-sm);margin-bottom:8px;font-size:.75rem;color:var(--error);font-weight:600}
+.voice-indicator.active{display:flex}
+
+/* Photo */
+.photo-area{border:2px dashed var(--border);border-radius:var(--r-md);padding:16px;text-align:center;cursor:pointer;transition:all .2s;margin-top:10px}
+.photo-area:hover{border-color:var(--primary);background:var(--primary-light)}
+.photo-area i{font-size:1.2rem;color:var(--muted);margin-bottom:4px}
+.photo-area p{font-size:.72rem;color:var(--muted)}
+#photoInput{display:none}
+
+.intro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.intro-item{padding:14px;background:var(--bg);border-radius:var(--r-md);font-size:.75rem;color:var(--text2);text-align:center}
+.intro-item i{display:block;color:var(--primary);font-size:1.15rem;margin-bottom:7px}
+.submit-overlay{position:fixed;inset:0;background:rgba(15,23,42,.62);z-index:999;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.submit-overlay.show{opacity:1;pointer-events:auto}
+.submit-card{width:min(420px,calc(100% - 32px));background:#fff;border-radius:22px;padding:38px 30px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.28);transform:scale(.78);transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+.submit-overlay.show .submit-card{transform:scale(1)}
+.submit-icon{width:72px;height:72px;border-radius:50%;margin:0 auto 16px;background:linear-gradient(135deg,#36b37e,#00875a);color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px}
+.submit-card h2{font-size:1.15rem;margin-bottom:7px}
+.submit-card p{font-size:.82rem;color:var(--text2)}
+.report-id{display:inline-block;margin-top:12px;padding:5px 12px;border-radius:8px;background:var(--primary-light);color:var(--primary);font-size:.72rem;font-weight:700}
+.status-timeline{display:grid;gap:10px;margin:16px 0}
+.status-item{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--bg)}
+.status-item i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--success-light);color:var(--success);font-size:.72rem;flex-shrink:0}
+.status-item.pending i{background:var(--primary-light);color:var(--primary)}
+.status-item strong{display:block;font-size:.78rem;margin-bottom:3px}
+.status-item p{font-size:.69rem;color:var(--muted);line-height:1.45}
+.student-verify{margin-top:18px;padding-top:18px;border-top:1px solid var(--border)}
+.student-verify-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.student-verify button{padding:14px 10px;border:2px solid var(--border);border-radius:var(--r-md);background:#fff;cursor:pointer;font-weight:700;color:var(--text);transition:.2s}
+.student-verify button:hover{border-color:var(--primary);background:var(--primary-light)}
+.verify-result{display:none;margin-top:14px;padding:14px;border-radius:var(--r-md);font-size:.78rem;line-height:1.55}
+.verify-result.show{display:block}
+.verify-next-actions{display:none;margin-top:12px;gap:8px;flex-wrap:wrap}
+.verify-next-actions.show{display:flex}
+.closure-actions{display:none;margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--bg)}
+.closure-actions.show{display:block}
+.closure-actions h4{font-size:.78rem;margin-bottom:9px}
+.closure-action-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.closure-action-grid button{padding:11px 8px;border:1px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--text);font-size:.7rem;font-weight:700;cursor:pointer}
+.closure-action-grid button:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+.closure-action-status{display:none;margin-top:12px;padding:14px;border-radius:var(--r-md);background:var(--success-light);color:#006644;font-size:.72rem;line-height:1.6;border:1px solid rgba(54,179,126,.25)}
+.closure-action-status.show{display:block}
+.closure-action-status strong{display:block;font-size:.82rem;margin-bottom:3px}
+
+@media(max-width:600px){
+  .field-grid{grid-template-columns:1fr}
+  .closure-grid{grid-template-columns:1fr}
+  .intro-grid{grid-template-columns:1fr}
+  .closure-action-grid{grid-template-columns:1fr}
+  .step-nav{gap:1px}
+  .step-nav .step{padding:4px 7px;font-size:.6rem}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-top">
+    <div class="header-title">
+      <h1>Student Portal</h1>
+      <span class="badge">Share what you are experiencing</span>
+    </div>
+    <div class="header-right">
+      <a href="integrated-portal.html" target="_top" class="back-link"><i class="fas fa-arrow-left"></i> Overview</a>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:14%"></div></div>
+  <nav class="step-nav" id="stepNav">
+    <div class="step active" data-step="0" onclick="goStep(0)"><span data-i18n="s_select">Select WO</span></div>
+    <div class="step" data-step="1" onclick="goStep(1)"><span data-i18n="s_report">Report</span></div>
+    <span class="sep">│</span>
+    <div class="step" data-step="2" onclick="goStep(2)"><span data-i18n="s_ai">AI</span></div>
+    <div class="step" data-step="3" onclick="goStep(3)"><span data-i18n="s_enrich">Enrich</span></div>
+    <div class="step" data-step="4" onclick="goStep(4)"><span data-i18n="s_workflow">Workflow</span></div>
+    <div class="step" data-step="5" onclick="goStep(5)"><span data-i18n="s_record">Record</span></div>
+    <span class="sep">│</span>
+    <div class="step" data-step="6" onclick="goStep(6)"><span data-i18n="s_verify">Verify</span></div>
+  </nav>
+</header>
+
+<main class="main">
+  <!-- Building Badge -->
+  <div class="building-badge">
+    <div class="icon">🏫</div>
+    <div class="info">
+      <h3>345 East 15th Street</h3>
+      <p>BIN: 1020419 · Block 922 / Lot 8 · 5-Story School</p>
+    </div>
+  </div>
+
+  <!-- STEP 0: Select WO -->
+  <div class="panel active" id="panel-0">
+    <div class="card">
+      <h2><i class="fas fa-comment-dots"></i> Report a Building Issue</h2>
+      <p style="font-size:.86rem;color:var(--text2);margin-bottom:12px">Tell the facilities team what you are seeing, hearing, or experiencing. You do not need to know whether a work order already exists.</p>
+      <div class="intro-grid">
+        <div class="intro-item"><i class="fas fa-location-dot"></i>Describe where it is</div>
+        <div class="intro-item"><i class="fas fa-eye"></i>Explain what happened</div>
+        <div class="intro-item"><i class="fas fa-camera"></i>Add a photo if useful</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnContinue0" onclick="goStep(1)">Start a Report <i class="fas fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: Report -->
+  <div class="panel" id="panel-1">
+    <div class="card">
+      <h2><i class="fas fa-eye"></i> What is happening?</h2>
+      <p style="font-size:.8rem;color:var(--text2);margin-bottom:12px">Include the location, when you noticed it, and how it affects people using the building.</p>
+      <div class="optional-link-box">
+        <label for="knownWorkOrder"><i class="fas fa-link"></i> Is this about an issue already listed? <span style="font-weight:500;color:var(--muted)">(optional)</span></label>
+        <select id="knownWorkOrder">
+          <option value="">I am not sure / this is a new issue</option>
+          <option value="WO-ee4cacef">WO-ee4cacef — Steam System Inspection</option>
+          <option value="WO-29c750cd">WO-29c750cd — Electrical Panel Maintenance</option>
+          <option value="WO-c5338071">WO-c5338071 — Emergency Exit Lighting</option>
+        </select>
+        <small>If you are unsure, leave this blank. The system will look for a matching work order after submission.</small>
+      </div>
+      <input class="location-input" id="locationInput" placeholder="Where is it? e.g. Room 304, third-floor restroom">
+      <input class="location-input" type="email" id="studentEmail" placeholder="Email for updates and receipt (optional)">
+      <div class="voice-indicator" id="voiceIndicator"><i class="fas fa-circle" style="font-size:6px;animation:pulse 1s infinite"></i> <span data-i18n="listening">Listening...</span></div>
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <textarea class="textarea" id="obsInput" oninput="checkFollowups()" data-i18n-placeholder="report_placeholder" placeholder="e.g. The steam radiator in room 304 has been hissing loudly every morning..."></textarea>
+        <button class="btn-voice" id="voiceBtn" onclick="toggleVoice()" title="Voice input"><i class="fas fa-microphone"></i></button>
+      </div>
+      <div style="margin-top:10px">
+        <label style="font-size:.72rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px" data-i18n="severity_label">Severity Assessment</label>
+        <div class="severity-row">
+          <span class="sev-chip" data-sev="low" onclick="setSeverity('low')">Low</span>
+          <span class="sev-chip" data-sev="medium" onclick="setSeverity('medium')">Medium</span>
+          <span class="sev-chip" data-sev="high" onclick="setSeverity('high')">High</span>
+          <span class="sev-chip" data-sev="critical" onclick="setSeverity('critical')">Critical</span>
+        </div>
+      </div>
+      <div class="photo-area" onclick="document.getElementById('photoInput').click()">
+        <i class="fas fa-camera"></i>
+        <p data-i18n="photo_prompt">Tap to take photo or upload</p>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" capture="environment">
+      <div class="followups" id="followups">
+        <h4 data-i18n="followup_title">💡 Follow-up questions (optional)</h4>
+        <div id="followupList"></div>
+      </div>
+      <p style="font-size:.72rem;color:var(--muted);margin-top:12px"><i class="fas fa-circle-info"></i> For an immediate safety emergency, notify school staff directly.</p>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goStep(0)"><i class="fas fa-arrow-left"></i> <span data-i18n="back">Back</span></button>
+        <button class="btn btn-primary" onclick="submitStudentReport()"><i class="fas fa-paper-plane"></i> Submit Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: AI Output -->
+  <div class="panel" id="panel-2">
+    <div class="card">
+      <h2><i class="fas fa-location-arrow"></i> Report Status</h2>
+      <p style="font-size:.8rem;color:var(--text2)">Track what happened after your report and verify the result after facilities staff respond.</p>
+      <div class="report-id" id="statusReportId">REPORT-0000</div>
+      <div class="status-timeline">
+        <div class="status-item"><i class="fas fa-check"></i><div><strong>Report received</strong><p>Your observation and location were recorded.</p></div></div>
+        <div class="status-item"><i class="fas fa-link"></i><div><strong id="matchStatusTitle">Matched to a work order</strong><p id="matchStatusText">The system connected your report to the relevant facilities record.</p></div></div>
+        <div class="status-item pending"><i class="fas fa-wrench"></i><div><strong>Facilities follow-up</strong><p>The facilities team can now review the evidence and record its response.</p></div></div>
+      </div>
+      <div class="student-verify">
+        <h3><i class="fas fa-check-double"></i> Has the issue been resolved?</h3>
+        <p style="font-size:.72rem;color:var(--muted)">For this demo, you can verify the outcome now. In production, this appears after a repair is recorded.</p>
+        <div class="student-verify-grid">
+          <button onclick="verifyStudentOutcome('fixed')">Fixed</button>
+          <button onclick="verifyStudentOutcome('partial')">Partially fixed</button>
+          <button onclick="verifyStudentOutcome('broken')">Still broken</button>
+          <button onclick="verifyStudentOutcome('worse')">Worse</button>
+        </div>
+        <div class="verify-result" id="studentVerifyResult"></div>
+        <div class="closure-actions" id="closureActions">
+          <h4>What should happen next?</h4>
+          <div class="closure-action-grid">
+            <button onclick="requestClosureAction('order')"><i class="fas fa-file-circle-plus"></i><br>Open follow-up order</button>
+            <button onclick="requestClosureAction('review')"><i class="fas fa-user-check"></i><br>Request staff review</button>
+            <button onclick="requestClosureAction('receipt')"><i class="fas fa-envelope"></i><br>Email receipt</button>
+          </div>
+          <div class="closure-action-status" id="closureActionStatus"></div>
+        </div>
+        <div class="verify-next-actions" id="verifyNextActions">
+          <button class="btn btn-primary" onclick="resetStudentReport()"><i class="fas fa-plus"></i> Report another issue</button>
+          <a class="btn btn-outline" href="integrated-portal.html?view=dashboard" target="_top" style="text-decoration:none"><i class="fas fa-chart-line"></i> View building dashboard</a>
+          <a class="btn btn-outline" href="integrated-portal.html" target="_top" style="text-decoration:none"><i class="fas fa-house"></i> Return to overview</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Enrich -->
+  <div class="panel" id="panel-3">
+    <div class="card">
+      <h2><i class="fas fa-landmark"></i> <span data-i18n="enrich_title">Public Data Enrichment</span></h2>
+      <p style="font-size:.72rem;color:var(--text2);margin-bottom:10px">🔵 NYC DOB / BIS — BIN 1020419</p>
+      <div id="enrichList"></div>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-gavel"></i> <span data-i18n="compliance_title">Compliance & Obligations</span></h2>
+      <p style="font-size:.72rem;color:var(--text2);margin-bottom:10px" data-i18n="compliance_desc">Regulatory context connected to this issue type.</p>
+      <div id="complianceList"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goStep(2)"><i class="fas fa-arrow-left"></i> <span data-i18n="back">Back</span></button>
+      <button class="btn btn-primary" onclick="goStep(4)"><i class="fas fa-clipboard-list"></i> <span data-i18n="workflow_btn">Generate Workflow</span></button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Workflow -->
+  <div class="panel" id="panel-4">
+    <div class="card">
+      <h2><i class="fas fa-route"></i> <span data-i18n="workflow_title">Recommended Workflow</span></h2>
+      <div class="escalation" id="escalationBanner">
+        <h4>⚠️ AUTO-ESCALATION TRIGGERED</h4>
+        <p id="escalationReason"></p>
+      </div>
+      <ol class="workflow-list" id="workflowList"></ol>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goStep(3)"><i class="fas fa-arrow-left"></i> <span data-i18n="back">Back</span></button>
+        <button class="btn btn-primary" onclick="goStep(5)"><i class="fas fa-cloud-arrow-up"></i> <span data-i18n="record_btn">Record to CriticalAsset</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5: Record -->
+  <div class="panel" id="panel-5">
+    <div class="card">
+      <h2><i class="fas fa-cloud-arrow-up"></i> <span data-i18n="record_title">Record to CriticalAsset</span></h2>
+      <p style="font-size:.72rem;color:var(--text2);margin-bottom:10px"><span id="recordProgress">0</span> / 6 completed</p>
+      <div id="recordList"></div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goStep(4)"><i class="fas fa-arrow-left"></i> <span data-i18n="back">Back</span></button>
+        <button class="btn btn-primary" id="btnExecute" onclick="executeRecord()"><i class="fas fa-play"></i> <span data-i18n="execute">Execute All Actions</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6: Verify -->
+  <div class="panel" id="panel-6">
+    <div class="card">
+      <h2><i class="fas fa-check-double"></i> <span data-i18n="verify_title">Closure Verification</span></h2>
+      <p style="font-size:.8rem;color:var(--text2);margin-bottom:14px" data-i18n="verify_desc">After completing the work, verify the outcome:</p>
+      <div class="closure-grid" id="closureGrid">
+        <div class="closure-opt" onclick="submitClosure('fixed')">
+          <h4>✅ <span data-i18n="cl_fixed">Fixed</span></h4>
+          <p data-i18n="cl_fixed_d">Issue fully resolved, system operational</p>
+        </div>
+        <div class="closure-opt" onclick="submitClosure('partial')">
+          <h4>🔧 <span data-i18n="cl_partial">Partially Fixed</span></h4>
+          <p data-i18n="cl_partial_d">Some improvement, further work needed</p>
+        </div>
+        <div class="closure-opt" onclick="submitClosure('broken')">
+          <h4>❌ <span data-i18n="cl_broken">Still Broken</span></h4>
+          <p data-i18n="cl_broken_d">No improvement observed</p>
+        </div>
+        <div class="closure-opt" onclick="submitClosure('worse')">
+          <h4>🚨 <span data-i18n="cl_worse">Worse</span></h4>
+          <p data-i18n="cl_worse_d">Condition deteriorated, escalation required</p>
+        </div>
+      </div>
+      <div class="closure-response" id="closureResponse"></div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goStep(5)"><i class="fas fa-arrow-left"></i> <span data-i18n="back">Back</span></button>
+      </div>
+    </div>
+  </div>
+</main>
+<div id="google_translate_element" style="position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none"></div>
+
+<div class="submit-overlay" id="submitOverlay" onclick="closeSubmitOverlay()">
+  <div class="submit-card" onclick="event.stopPropagation()">
+    <div class="submit-icon"><i class="fas fa-check"></i></div>
+    <h2>Report submitted</h2>
+    <p id="submissionOutcome">Your observation was sent to the facilities team.</p>
+    <div class="report-id" id="reportId">REPORT-0000</div>
+    <div class="btn-row" style="justify-content:center;margin-top:20px">
+      <button class="btn btn-primary" onclick="resetStudentReport()">Submit another report</button>
+      <button class="btn btn-outline" onclick="openReportStatus()">Track this report</button>
+      <a class="btn btn-outline" href="integrated-portal.html" target="_top" style="text-decoration:none">Return to overview</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function googleTranslateElementInit(){
+  new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'en,es,zh-CN',autoDisplay:false},'google_translate_element');
+  setTimeout(()=>{ if(parent!==window && parent.syncFrameLanguage) parent.syncFrameLanguage(frameElement); },800);
+}
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let currentStep = 0;
+let selectedWO = null;
+let severity = null;
+let structured = null;
+let lang = 'en';
+let isRecording = false;
+let recognition = null;
+
+function submitStudentReport(){
+  if(isRecording) stopVoice();
+  const location=document.getElementById('locationInput');
+  const input=document.getElementById('obsInput');
+  const missing=!location.value.trim()?location:(!input.value.trim()?input:null);
+  if(missing){
+    missing.focus();
+    missing.style.borderColor='var(--error)';
+    setTimeout(()=>missing.style.borderColor='',1600);
+    return;
+  }
+  const knownWorkOrder=document.getElementById('knownWorkOrder').value;
+  const reportId='REPORT-'+Math.floor(1000+Math.random()*9000);
+  selectedWO=knownWorkOrder;
+  document.getElementById('submissionOutcome').textContent=knownWorkOrder
+    ? 'Your observation was sent to the facilities team and linked to '+knownWorkOrder+'.'
+    : 'Your observation was sent to the facilities team. The system will look for a matching work order or create a review item.';
+  document.getElementById('reportId').textContent=reportId;
+  document.getElementById('statusReportId').textContent=reportId;
+  document.getElementById('matchStatusTitle').textContent=knownWorkOrder?'Linked to '+knownWorkOrder:'Matching or review in progress';
+  document.getElementById('matchStatusText').textContent=knownWorkOrder
+    ? 'Your report was attached to the existing work order you selected.'
+    : 'The system will match this report to an existing work order or create a new review item.';
+  document.getElementById('submitOverlay').classList.add('show');
+}
+
+function closeSubmitOverlay(){
+  document.getElementById('submitOverlay').classList.remove('show');
+}
+
+function openReportStatus(){
+  closeSubmitOverlay();
+  goStep(2);
+}
+
+function verifyStudentOutcome(status){
+  const result=document.getElementById('studentVerifyResult');
+  const messages={
+    fixed:['var(--success-light)','#006644','Thank you. The issue is now marked Verified Fixed.'],
+    partial:['var(--warning-light)','#92400e','Thank you. A follow-up review has been requested.'],
+    broken:['var(--warning-light)','#92400e','The issue was reopened and staff will be notified.'],
+    worse:['#fef2f2','var(--error)','The condition was escalated for urgent staff review.']
+  };
+  const message=messages[status];
+  result.style.background=message[0];
+  result.style.color=message[1];
+  result.textContent=message[2];
+  result.classList.add('show');
+  document.getElementById('verifyNextActions').classList.add('show');
+  document.getElementById('closureActions').classList.add('show');
+}
+
+function requestClosureAction(action){
+  const status=document.getElementById('closureActionStatus');
+  const email=document.getElementById('studentEmail').value.trim();
+  const reportId=document.getElementById('statusReportId').textContent;
+  const submittedAt=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+  const messages={
+    order:['Follow-up order created','A new work order was created and linked to '+reportId+'.'],
+    review:['Staff review requested','The review was added to the Building Dashboard and linked to '+reportId+'.'],
+    receipt:email?['Receipt sent','A closure receipt for '+reportId+' was generated and sent to '+email+'.']:['Email required','Add an email address in the report to receive a closure receipt.']
+  };
+  const message=messages[action];
+  status.innerHTML='<strong><i class="fas fa-check-circle"></i> '+message[0]+'</strong>'+message[1]+'<br><span style="opacity:.72">Submitted at '+submittedAt+'</span>';
+  status.style.background=action==='receipt'&&!email?'var(--warning-light)':'var(--success-light)';
+  status.style.color=action==='receipt'&&!email?'#92400e':'#006644';
+  status.classList.add('show');
+}
+
+function resetStudentReport(){
+  closeSubmitOverlay();
+  document.getElementById('knownWorkOrder').value='';
+  document.getElementById('locationInput').value='';
+  document.getElementById('studentEmail').value='';
+  document.getElementById('obsInput').value='';
+  document.querySelectorAll('.sev-chip').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('studentVerifyResult').classList.remove('show');
+  document.getElementById('verifyNextActions').classList.remove('show');
+  document.getElementById('closureActions').classList.remove('show');
+  document.getElementById('closureActionStatus').classList.remove('show');
+  severity=null;
+  goStep(0);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// i18n
+// ═══════════════════════════════════════════════════════════════
+const i18n = {
+  en: {
+    title:'Signal Report', dashboard:'Dashboard', continue:'Continue', back:'Back',
+    s_select:'Select WO', s_report:'Report', s_ai:'AI', s_enrich:'Enrich', s_workflow:'Workflow', s_record:'Record', s_verify:'Verify',
+    select_title:'Select Work Order', select_desc:'Choose an active work order to enrich with field intelligence.',
+    select_placeholder:'— Choose a work order —',
+    report_title:'Field Observation', report_desc:'Describe what you see, hear, or smell. Be specific about location and condition.',
+    report_placeholder:'e.g. The steam radiator in room 304 has been hissing loudly every morning...',
+    severity_label:'Severity Assessment', photo_prompt:'Tap to take photo or upload',
+    followup_title:'💡 Follow-up questions (optional)', listening:'Listening...',
+    run_ai:'Run AI Structuring', ai_title:'AI-Structured Output',
+    enrich_btn:'Enrich with Public Data', enrich_title:'Public Data Enrichment',
+    compliance_title:'Compliance & Obligations', compliance_desc:'Regulatory context connected to this issue type.',
+    workflow_btn:'Generate Workflow', workflow_title:'Recommended Workflow',
+    record_btn:'Record to CriticalAsset', record_title:'Record to CriticalAsset',
+    execute:'Execute All Actions',
+    verify_title:'Closure Verification', verify_desc:'After completing the work, verify the outcome:',
+    cl_fixed:'Fixed', cl_fixed_d:'Issue fully resolved, system operational',
+    cl_partial:'Partially Fixed', cl_partial_d:'Some improvement, further work needed',
+    cl_broken:'Still Broken', cl_broken_d:'No improvement observed',
+    cl_worse:'Worse', cl_worse_d:'Condition deteriorated, escalation required'
+  },
+  es: {
+    title:'Reporte de Señal', dashboard:'Panel', continue:'Continuar', back:'Atrás',
+    s_select:'Seleccionar', s_report:'Reportar', s_ai:'IA', s_enrich:'Enriquecer', s_workflow:'Flujo', s_record:'Registrar', s_verify:'Verificar',
+    select_title:'Seleccionar Orden de Trabajo', select_desc:'Elija una orden activa para enriquecer con inteligencia de campo.',
+    select_placeholder:'— Elegir una orden —',
+    report_title:'Observación de Campo', report_desc:'Describe lo que ves, oyes o hueles. Sé específico sobre ubicación y condición.',
+    report_placeholder:'ej. El radiador de vapor en el salón 304 ha estado silbando todas las mañanas...',
+    severity_label:'Evaluación de Severidad', photo_prompt:'Toca para tomar foto o subir',
+    followup_title:'💡 Preguntas de seguimiento (opcional)', listening:'Escuchando...',
+    run_ai:'Ejecutar IA', ai_title:'Resultado de IA',
+    enrich_btn:'Enriquecer con Datos Públicos', enrich_title:'Enriquecimiento con Datos Públicos',
+    compliance_title:'Cumplimiento y Obligaciones', compliance_desc:'Contexto regulatorio conectado a este tipo de problema.',
+    workflow_btn:'Generar Flujo de Trabajo', workflow_title:'Flujo de Trabajo Recomendado',
+    record_btn:'Registrar en CriticalAsset', record_title:'Registrar en CriticalAsset',
+    execute:'Ejecutar Todas las Acciones',
+    verify_title:'Verificación de Cierre', verify_desc:'Después de completar el trabajo, verifica el resultado:',
+    cl_fixed:'Resuelto', cl_fixed_d:'Problema completamente resuelto',
+    cl_partial:'Parcialmente Resuelto', cl_partial_d:'Alguna mejora, necesita más trabajo',
+    cl_broken:'Sigue Roto', cl_broken_d:'Sin mejora observada',
+    cl_worse:'Peor', cl_worse_d:'La condición empeoró, se requiere escalamiento'
+  }
+};
+
+function toggleLang(){
+  lang = lang==='en'?'es':'en';
+  document.getElementById('langLabel').textContent = lang==='en'?'ES':'EN';
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    if(i18n[lang][k]) el.textContent=i18n[lang][k];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const k=el.getAttribute('data-i18n-placeholder');
+    if(i18n[lang][k]) el.placeholder=i18n[lang][k];
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+function goStep(n){
+  if(n>currentStep+1) return; // can't skip ahead
+  currentStep=n;
+  document.querySelectorAll('.panel').forEach((p,i)=>{p.classList.toggle('active',i===n)});
+  document.querySelectorAll('.step-nav .step').forEach((s,i)=>{
+    s.classList.remove('active','done');
+    if(i===n) s.classList.add('active');
+    else if(i<n) s.classList.add('done');
+  });
+  document.getElementById('progressFill').style.width=((n+1)/7*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STEP 0: WO SELECT
+// ═══════════════════════════════════════════════════════════════
+function onWOSelect(){
+  selectedWO=document.getElementById('woSelect').value;
+  document.getElementById('btnContinue0').disabled=!selectedWO;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STEP 1: REPORT — VOICE INPUT
+// ═══════════════════════════════════════════════════════════════
+function toggleVoice(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){alert('Voice not supported. Use Chrome.');return}
+  isRecording?stopVoice():startVoice();
+}
+function startVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.continuous=true;recognition.interimResults=true;
+  recognition.lang=lang==='es'?'es-US':'en-US';
+  recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;document.getElementById('obsInput').value=t;checkFollowups()};
+  recognition.onerror=()=>stopVoice();
+  recognition.onend=()=>{if(isRecording)recognition.start()};
+  recognition.start();isRecording=true;
+  document.getElementById('voiceBtn').classList.add('recording');
+  document.getElementById('voiceIndicator').classList.add('active');
+}
+function stopVoice(){
+  if(recognition)recognition.stop();isRecording=false;
+  document.getElementById('voiceBtn').classList.remove('recording');
+  document.getElementById('voiceIndicator').classList.remove('active');
+}
+
+// SEVERITY
+function setSeverity(s){
+  severity=s;
+  document.querySelectorAll('.sev-chip').forEach(c=>c.classList.toggle('selected',c.dataset.sev===s));
+}
+
+// FOLLOW-UP QUESTIONS
+function checkFollowups(){
+  const t=document.getElementById('obsInput').value.toLowerCase();
+  const qs=[];
+  if(t.includes('hot')||t.includes('cold')||t.includes('heat')||t.includes('calor')||t.includes('steam')||t.includes('vapor')){
+    qs.push('Has this happened before or is it new?','What time of day is it worst?','Are other rooms affected?');
+  }else if(t.includes('dark')||t.includes('light')||t.includes('exit')||t.includes('sign')||t.includes('oscuro')){
+    qs.push('How long has this been happening?','Is it completely off or flickering?','Are other signs in the area also affected?');
+  }else if(t.includes('water')||t.includes('leak')||t.includes('wet')||t.includes('smell')||t.includes('drain')||t.includes('agua')){
+    qs.push('Is water actively flowing?','Is the area a slip hazard?','Has this been reported before?');
+  }else if(t.includes('elevator')||t.includes('door')||t.includes('ramp')||t.includes('ascensor')){
+    qs.push('Is anyone currently unable to access a floor?','How long has it been out?','Are there students with mobility needs affected?');
+  }else if(t.length>20){
+    qs.push('Has this happened before?','Who else is affected?','How disruptive is it (1-10)?');
+  }
+  const el=document.getElementById('followups');
+  const list=document.getElementById('followupList');
+  if(qs.length){
+    list.innerHTML=qs.map(q=>`<div class="followup-q" onclick="appendQ(this)"><i class="fas fa-plus-circle"></i> ${q}</div>`).join('');
+    el.classList.add('visible');
+  }else{el.classList.remove('visible')}
+}
+function appendQ(el){
+  const ta=document.getElementById('obsInput');
+  ta.value+='\n'+el.textContent.trim().replace(/^\+/,'');
+  el.style.opacity='.4';el.style.pointerEvents='none';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STEP 2: AI STRUCTURING
+// ═══════════════════════════════════════════════════════════════
+function runAI(){
+  if(isRecording)stopVoice();
+  const text=document.getElementById('obsInput').value.trim();
+  if(!text){alert(lang==='es'?'Describe lo que observas.':'Please describe what you observe.');return}
+  structured=structureSignal(text);
+  renderAI();
+  goStep(2);
+}
+
+function structureSignal(text){
+  const t=text.toLowerCase();
+  let category='General Maintenance',asset='Unknown',location='Not specified',urgency='Medium',confidence='likely';
+  // Category
+  if(t.match(/steam|radiator|hot|cold|heat|hvac|boiler|calor|vapor/)){category='HVAC / Steam / Thermal';confidence='verified'}
+  else if(t.match(/exit|sign|dark|light|fire|emergency|stairwell|oscuro|incendio/)){category='Fire & Life Safety';confidence='verified'}
+  else if(t.match(/elevator|ramp|wheelchair|access|ascensor|rampa/)){category='Accessibility / Elevator';confidence='verified'}
+  else if(t.match(/water|leak|drain|plumb|flood|sewage|smell|agua|olor/)){category='Plumbing / Water';confidence='verified'}
+  else if(t.match(/electric|panel|outlet|spark|wire/)){category='Electrical';confidence='likely'}
+  // Location
+  const floorM=text.match(/(?:room|rm|salon|salón)\s*(\d+)/i)||text.match(/(\d+)(?:st|nd|rd|th)\s*floor/i)||text.match(/floor\s*(\d+)/i);
+  if(floorM)location='Room/Floor '+floorM[1];
+  if(t.includes('gym'))location+=' (near gym)';
+  if(t.includes('stairwell')||t.includes('stairs'))location+=' stairwell';
+  if(t.includes('bathroom')||t.includes('restroom')||t.includes('baño'))location+=' restroom';
+  if(location==='Not specified')location='Needs inspection — not specified';
+  // Asset
+  const assetMap={'HVAC / Steam / Thermal':'Steam Pressure Reducing Valve Station','Fire & Life Safety':'Exit Sign / Emergency Lighting','Accessibility / Elevator':'Elevator Controller','Plumbing / Water':'Floor Drain / Sanitary Line','Electrical':'Main Switchboard'};
+  asset=assetMap[category]||'Unknown';
+  // Urgency
+  if(severity==='critical'||category==='Fire & Life Safety')urgency='Critical — Same Day';
+  else if(severity==='high')urgency='High — Within 24 hours';
+  else if(severity==='medium')urgency='Medium — Within 72 hours';
+  else urgency='Standard';
+  return {category,asset,location,urgency,confidence,text,severity:severity||'medium'};
+}
+
+function renderAI(){
+  const s=structured;
+  document.getElementById('aiFields').innerHTML=`
+    <div class="field-item"><div class="label">Issue Category</div><div class="value">${s.category}</div><span class="conf conf-${s.confidence}">${s.confidence}</span></div>
+    <div class="field-item"><div class="label">Location</div><div class="value">${s.location}</div><span class="conf conf-${s.location.includes('Not specified')?'missing':'likely'}">${s.location.includes('Not specified')?'missing':'likely'}</span></div>
+    <div class="field-item"><div class="label">Component / Asset</div><div class="value">${s.asset}</div><span class="conf conf-${s.asset==='Unknown'?'missing':'inferred'}">${s.asset==='Unknown'?'missing':'inferred'}</span></div>
+    <div class="field-item"><div class="label">Urgency</div><div class="value">${s.urgency}</div><span class="conf conf-verified">verified</span></div>
+    <div class="field-item" style="grid-column:1/-1"><div class="label">AI Summary</div><div class="value" style="font-weight:400;font-size:.78rem">${s.text}</div><span class="conf conf-verified">verified</span></div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STEP 3: ENRICH + COMPLIANCE
+// ═══════════════════════════════════════════════════════════════
+const dobData=[
+  {num:'1724765',date:'May 8, 2026',desc:'Failure to maintain — violation written',status:'active',cat:'Maintenance',impl:'Active maintenance violation indicates systemic deferred maintenance. Current issue may be part of a broader pattern requiring comprehensive inspection.'},
+  {num:'1703076',date:'Aug 25, 2025',desc:'Boiler complaint — resolved, no violations',status:'resolved',cat:'Boiler',impl:'Prior boiler complaint was resolved without violations, suggesting the steam system had a previous incident. Check if current issue is a recurrence.'},
+  {num:'1702008',date:'Aug 12, 2025',desc:'Second boiler complaint within 2 weeks',status:'resolved',cat:'Boiler',impl:'Two boiler complaints in close succession suggest intermittent issues with the steam/heating system that may not have been fully addressed.'},
+  {num:'1695358',date:'May 12, 2025',desc:'Pedestrian protection inadequate — Stop Work Order',status:'active',cat:'Construction',impl:'Stop Work Order indicates prior construction activity. Verify that any recent work did not compromise building systems.'},
+  {num:'1690044',date:'Mar 4, 2025',desc:'Cement brick fell from school building during construction',status:'resolved',cat:'Construction',impl:'Construction-related structural debris indicates active work that may have disturbed mechanical/electrical systems.'},
+  {num:'1649160',date:'Sep 25, 2023',desc:'No running water or water pressure in the school',status:'resolved',cat:'Plumbing',impl:'Prior water pressure failure could relate to steam system issues (shared infrastructure). Pattern of utility failures.'},
+  {num:'1610978',date:'Jun 1, 2022',desc:'Blocked egress — partial Stop Work Order',status:'resolved',cat:'Egress',impl:'Prior egress blocking indicates life-safety pattern. If current issue involves exit paths, escalate before closure.'},
+  {num:'1471369',date:'2018',desc:'Both elevators failed — disabled students used stairs',status:'resolved',cat:'Elevator',impl:'Elevator failure directly impacted accessibility. Building has documented ADA compliance history.'}
+];
+
+const complianceDB={
+  'HVAC / Steam / Thermal':[
+    {code:'NYC Admin Code §27-2029',desc:'During heating season (Oct 1–May 31): minimum 68°F when outdoor temp <55°F (6am-10pm). Violations trigger DOB complaint.',level:'warning'},
+    {code:'ASHRAE Standard 55',desc:'Thermal comfort: classrooms should maintain 68-76°F with 30-60% relative humidity.',level:'warning'},
+    {code:'DOE Chancellor Reg A-850',desc:'HVAC complaints trigger Division of School Facilities work order. Recurrence within 30 days → escalation to Borough Field Office.',level:'warning'}
+  ],
+  'Fire & Life Safety':[
+    {code:'NYC Fire Code §1011.2',desc:'Egress illumination must be maintained at ALL times when building is occupied. Exit signs require 90-min battery backup.',level:'critical'},
+    {code:'FDNY Rule 4-01',desc:'Annual testing and documentation of all emergency lighting and exit sign battery units required.',level:'critical'},
+    {code:'DOE Chancellor Reg A-850',desc:'Life-safety system failures trigger 24-hour escalation to DOE facilities.',level:'warning'}
+  ],
+  'Accessibility / Elevator':[
+    {code:'ADA Title II',desc:'Public schools must provide program access. If elevators fail, alternative access must be immediately provided.',level:'critical'},
+    {code:'NYC Building Code §3001.2',desc:'Elevators on accessible routes must be operational. Failure >24 hours triggers accessibility complaint rights.',level:'critical'},
+    {code:'DOE Chancellor Reg A-710',desc:'School safety plans must address accessibility during emergencies. Individual evacuation plans required for mobility-impaired students.',level:'warning'}
+  ],
+  'Plumbing / Water':[
+    {code:'NYC Health Code §141.07',desc:'Schools must provide potable water. Loss of pressure requires immediate DOE notification and may trigger closure protocol.',level:'critical'},
+    {code:'NYC Plumbing Code §305.1',desc:'Sanitary drainage must be maintained. Sewage odor indicates trap seal failure requiring same-day attention.',level:'critical'},
+    {code:'DEP Coordination',desc:'Water main issues may require NYC DEP coordination. Check DEP service alerts for planned shutoffs.',level:'warning'}
+  ],
+  'Electrical':[
+    {code:'NYC Electrical Code §27-3004',desc:'Electrical systems must be maintained in safe condition. Arc flash or spark hazards require immediate de-energization.',level:'critical'},
+    {code:'NFPA 70 (NEC)',desc:'National Electrical Code governs installation and maintenance standards. Panel access must remain unobstructed.',level:'warning'}
+  ]
+};
+
+function renderEnrich(){
+  const cat=structured?.category||'General';
+  // Filter relevant DOB records
+  const relevant=dobData.filter(d=>{
+    if(cat.includes('HVAC')||cat.includes('Steam')) return d.cat==='Boiler'||d.cat==='Maintenance';
+    if(cat.includes('Fire')) return d.cat==='Egress'||d.cat==='Maintenance';
+    if(cat.includes('Elevator')||cat.includes('Access')) return d.cat==='Elevator'||d.cat==='Egress';
+    if(cat.includes('Plumbing')) return d.cat==='Plumbing'||d.cat==='Maintenance';
+    if(cat.includes('Electrical')) return d.cat==='Maintenance'||d.cat==='Construction';
+    return true;
+  }).slice(0,5);
+
+  document.getElementById('enrichList').innerHTML=
+    `<p style="font-size:.72rem;color:var(--text2);margin-bottom:8px">${relevant.length} relevant DOB complaints found for 345 East 15th Street</p>`+
+    relevant.map(d=>`<div class="enrich-item"><span class="enrich-date">${d.date}</span><div><strong>#${d.num}</strong> <span class="${d.status==='active'?'badge-active':'badge-resolved'}">${d.status.toUpperCase()}</span><br>${d.desc}<br><em style="font-size:.68rem;color:var(--text2)">⚙️ ${d.impl}</em></div></div>`).join('');
+
+  // Compliance
+  const rules=complianceDB[cat]||complianceDB['HVAC / Steam / Thermal'];
+  document.getElementById('complianceList').innerHTML=rules.map(r=>
+    `<div class="compliance-item ${r.level==='critical'?'critical':''}"><span class="compliance-code">${r.code}</span><span>${r.desc}</span></div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STEP 4: WORKFLOW + ESCALATION
+// ═══════════════════════════════════════════════════════════════
+const workflowDB={
+  'HVAC / Steam / Thermal':[
+    {text:'Isolate steam supply valve to affected zone',p:'immediate'},
+    {text:'Check pressure gauge readings at PRV station',p:'immediate'},
+    {text:'Inspect safety relief valve for discharge signs',p:'high'},
+    {text:'Verify thermostat and BAS setpoints for room/zone',p:'high'},
+    {text:'Schedule licensed steam fitter inspection',p:'standard'},
+    {text:'Document condition with photos for DOB compliance',p:'standard'}
+  ],
+  'Fire & Life Safety':[
+    {text:'Dispatch to location within 4 hours — life safety priority',p:'immediate'},
+    {text:'Battery discharge test on affected exit signs',p:'immediate'},
+    {text:'Survey all exit signs in stairwell/zone for batch failure',p:'high'},
+    {text:'Document for FDNY compliance (Fire Code §1011.2)',p:'high'},
+    {text:'Escalate if multiple signs affected — pattern indicates system failure',p:'high'},
+    {text:'Ask student to verify fix within 72 hours',p:'standard'}
+  ],
+  'Accessibility / Elevator':[
+    {text:'Emergency repair if access completely blocked',p:'immediate'},
+    {text:'Provide alternative accessible route immediately',p:'immediate'},
+    {text:'File ADA compliance report with DOE facilities',p:'high'},
+    {text:'Notify school administration and parent association',p:'high'},
+    {text:'Escalate to Division of School Facilities if unresolved in 48h',p:'standard'},
+    {text:'Document barrier with photos for accessibility audit',p:'standard'}
+  ],
+  'Plumbing / Water':[
+    {text:'Shut off water supply to affected area if active leak',p:'immediate'},
+    {text:'Dispatch plumber — same-day for active water issue',p:'immediate'},
+    {text:'Check main water pressure and recent utility work',p:'high'},
+    {text:'Verify trap seal if sewage odor reported',p:'high'},
+    {text:'Document damage for insurance and DOE reporting',p:'standard'},
+    {text:'Verify repair with student within 48 hours',p:'standard'}
+  ],
+  'Electrical':[
+    {text:'De-energize affected circuit if spark/arc hazard',p:'immediate'},
+    {text:'Lock-out/tag-out affected panel',p:'immediate'},
+    {text:'Dispatch licensed electrician — same day',p:'high'},
+    {text:'Verify no water intrusion near electrical equipment',p:'high'},
+    {text:'Inspect panel clearance and labeling',p:'standard'},
+    {text:'Document for code compliance',p:'standard'}
+  ]
+};
+
+function renderWorkflow(){
+  const cat=structured?.category||'HVAC / Steam / Thermal';
+  const steps=workflowDB[cat]||workflowDB['HVAC / Steam / Thermal'];
+  document.getElementById('workflowList').innerHTML=steps.map(s=>
+    `<li><span>${s.text}</span><span class="wf-priority wf-${s.p}">${s.p.toUpperCase()}</span></li>`
+  ).join('');
+
+  // Escalation logic
+  const isLifeSafety=cat==='Fire & Life Safety'||cat==='Accessibility / Elevator';
+  const isCritical=severity==='critical'||severity==='high';
+  const hasRecurrence=dobData.filter(d=>{
+    if(cat.includes('HVAC'))return d.cat==='Boiler';
+    if(cat.includes('Fire'))return d.cat==='Egress';
+    if(cat.includes('Elevator'))return d.cat==='Elevator';
+    if(cat.includes('Plumbing'))return d.cat==='Plumbing';
+    return false;
+  }).length>=2;
+
+  const reasons=[];
+  if(isLifeSafety&&isCritical) reasons.push('Life-safety issue with Critical/High severity');
+  if(hasRecurrence) reasons.push('Recurring pattern detected in DOB history (2+ prior complaints)');
+
+  const banner=document.getElementById('escalationBanner');
+  if(reasons.length){
+    banner.classList.add('visible');
+    document.getElementById('escalationReason').innerHTML=reasons.map(r=>`• ${r}`).join('<br>')+'<br><br><strong>→ Routed to: Division of School Facilities + Building Manager</strong><br><strong>→ 4-hour response required</strong>';
+  }else{banner.classList.remove('visible')}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STEP 5: RECORD
+// ═══════════════════════════════════════════════════════════════
+const recordActions=['Update Work Order description','Link Room / Location','Link Asset','Add Evidence (photo + signal)','Flag Missing Info','Recommend Inspection'];
+function renderRecord(){
+  document.getElementById('recordList').innerHTML=recordActions.map(a=>
+    `<div class="record-item"><i class="fas fa-circle" style="font-size:6px;color:var(--muted)"></i><span>${a}</span><span class="record-status status-pending">Pending</span></div>`
+  ).join('');
+  document.getElementById('recordProgress').textContent='0';
+}
+function executeRecord(){
+  const btn=document.getElementById('btnExecute');
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Recording...';
+  const items=document.querySelectorAll('.record-item');
+  let i=0;
+  const interval=setInterval(()=>{
+    if(i>=items.length){clearInterval(interval);btn.innerHTML='<i class="fas fa-check"></i> Done — Go to Verify';btn.disabled=false;btn.onclick=()=>goStep(6);return}
+    items[i].querySelector('.record-status').className='record-status status-done';
+    items[i].querySelector('.record-status').textContent='✓ Done';
+    items[i].querySelector('.fa-circle').className='fas fa-check-circle';
+    items[i].querySelector('.fa-check-circle').style.color='var(--success)';
+    i++;document.getElementById('recordProgress').textContent=i;
+  },600);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STEP 6: VERIFY / CLOSURE
+// ═══════════════════════════════════════════════════════════════
+function submitClosure(status){
+  document.querySelectorAll('.closure-opt').forEach(o=>{o.style.opacity='.5';o.style.pointerEvents='none'});
+  event.currentTarget.classList.add('selected');event.currentTarget.style.opacity='1';
+  const resp=document.getElementById('closureResponse');
+  resp.classList.add('visible');
+  const msgs={
+    fixed:{cls:'success',html:'<strong>✅ Thank you!</strong> This signal is closed. Your confirmation helps the system learn.<br><em>Work order status: Verified Fixed.</em>'},
+    partial:{cls:'warn',html:'<strong>🔧 Logged.</strong> A follow-up work order has been created. You\'ll be asked again in 7 days.<br><em>Status: Partially Resolved — follow-up scheduled.</em>'},
+    broken:{cls:'warn',html:'<strong>⏳ Re-opened and escalated to supervisor.</strong> Expected response within 48 hours.<br><em>The maintenance team has been notified of the unresolved condition.</em>'},
+    worse:{cls:'danger',html:'<strong>🚨 URGENT ESCALATION.</strong><br>• Routed to Building Manager + Division of School Facilities<br>• 4-hour response required<br>• Student safety team notified<br><em>Escalated at '+new Date().toLocaleString()+'</em>'}
+  };
+  const m=msgs[status];
+  resp.className='closure-response visible '+m.cls;
+  resp.innerHTML=m.html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STEP TRANSITIONS — auto-render on step change
+// ═══════════════════════════════════════════════════════════════
+const origGoStep=goStep;
+goStep=function(n){
+  if(n===3){renderEnrich()}
+  if(n===4){renderWorkflow()}
+  if(n===5){renderRecord()}
+  origGoStep(n);
+};
+// Fix: re-define to avoid recursion
+(function(){
+  const panels=document.querySelectorAll('.panel');
+  const steps=document.querySelectorAll('.step-nav .step');
+  window.goStep=function(n){
+    if(n===3)renderEnrich();
+    if(n===4)renderWorkflow();
+    if(n===5)renderRecord();
+    currentStep=n;
+    panels.forEach((p,i)=>p.classList.toggle('active',i===n));
+    steps.forEach((s,i)=>{s.classList.remove('active','done');if(i===n)s.classList.add('active');else if(i<n)s.classList.add('done')});
+    document.getElementById('progressFill').style.width=((n+1)/7*100)+'%';
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+})();
+</script>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>
